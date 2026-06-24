@@ -1,6 +1,34 @@
 # Changelog
 
-## 2026-06-24
+## 2026-06-24 (v1.2 — Days 2–5 + Testing)
+
+Added:
+
+- `src/components/MacroSummary.tsx` — calorie progress ring + protein/fat/carb bars
+- `src/components/MealCard.tsx` — meal display card with inline editing and delete
+- `src/components/AddMealForm.tsx` — manual food entry form with validation
+- `src/components/CameraUpload.tsx` — camera capture → compress → Gemini → diary
+- `src/components/PortionSelector.tsx` — portion multiplier buttons (0.5x–2x)
+- `src/app/DiaryClient.tsx` — client-side state manager for the home diary
+- `src/app/history/HistoryClient.tsx` — day-navigation calendar with edit/delete
+- `src/app/weight/WeightClient.tsx` — weight input form + sparkline SVG chart
+- `src/app/settings/SettingsClient.tsx` — editable macro goal form
+- `public/icons/icon-192.png`, `icon-512.png` — PWA icons
+- Vitest unit tests: `MacroSummary`, `MealCard`, `AddMealForm`, `PortionSelector`, `compress-image`
+- Playwright E2E tests: navigation smoke suite + diary interaction suite
+- `vitest.config.mts` — Vitest configuration with jsdom environment
+- `playwright.config.ts` — Playwright configuration with `webServer` (next dev)
+- `npm test`, `npm run test:watch`, `npm run test:e2e` scripts
+
+Refactored:
+
+- `src/app/page.tsx` — upgraded from placeholder stub to real Server Component fetching data
+- `src/app/history/page.tsx` — upgraded from stub to real page
+- `src/app/weight/page.tsx` — upgraded from stub to real Server Component
+- `src/app/settings/page.tsx` — upgraded from stub to real Server Component
+- `docs/plan.md` — rewritten as v1.2 with ✅ completion markers and full testing section
+
+## 2026-06-24 (v1.1 — Day 1)
 
 Added:
 

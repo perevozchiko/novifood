@@ -1,0 +1,136 @@
+'use client';
+
+/*
+  HistoryClient — calendar navigation + day view.
+
+  Fetches meals for the selected day via Supabase browser client,
+  allows editing and deleting entries inline.
+*/
+
+import { useCallback, useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { supabaseBrowser } from '@/lib/supabase-browser';
+import MealCard from '@/components/MealCard';
+import { deleteMeal, updateMeal } from '@/lib/meals';
+import type { Meal } from '@/types';
+
+interface Props {
+  today: string;
+}
+
+function formatDisplay(dateStr: string): string {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('ru-RU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+export default function HistoryClient({ today }: Props) {
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [meals, setMeals] = useState<Meal[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchMeals = useCallback(async (dateStr: string) => {
+    setLoading(true);
+    try {
+      const from = `${dateStr}T00:00:00.000Z`;
+      const to = `${dateStr}T23:59:59.999Z`;
+      const { data, error } = await supabaseBrowser
+        .from('meals')
+        .select('*')
+        .gte('eaten_at', from)
+        .lte('eaten_at', to)
+        .order('eaten_at', { ascending: true });
+      if (error) throw error;
+      setMeals(data || []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMeals(selectedDate);
+  }, [selectedDate, fetchMeals]);
+
+  function navigate(delta: number) {
+    const next = addDays(selectedDate, delta);
+    if (next <= today) setSelectedDate(next);
+  }
+
+  async function handleDelete(id: string) {
+    await deleteMeal(id);
+    setMeals((prev) => prev.filter((m) => m.id !== id));
+  }
+
+  async function handleUpdate(id: string, updates: Partial<Meal>) {
+    const updated = await updateMeal(id, updates);
+    setMeals((prev) => prev.map((m) => (m.id === id ? updated : m)));
+  }
+
+  const isToday = selectedDate === today;
+  const totalCal = meals.reduce((s, m) => s + (m.calories || 0), 0);
+
+  return (
+    <div>
+      {/* Date navigator */}
+      <div className="flex items-center justify-between bg-white rounded-2xl p-3 shadow-sm mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Предыдущий день"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <div className="text-center">
+          <p className="text-sm font-semibold text-gray-900 capitalize">
+            {isToday ? 'Сегодня' : formatDisplay(selectedDate)}
+          </p>
+          {!isToday && (
+            <p className="text-xs text-gray-400">{selectedDate}</p>
+          )}
+        </div>
+
+        <button
+          onClick={() => navigate(1)}
+          disabled={isToday}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30"
+          aria-label="Следующий день"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {loading && (
+        <div className="text-center text-sm text-gray-400 py-8">Загрузка…</div>
+      )}
+
+      {!loading && meals.length === 0 && (
+        <div className="bg-white rounded-2xl p-8 shadow-sm text-center text-gray-400">
+          <p className="text-3xl mb-2">📅</p>
+          <p className="text-sm">Нет записей за этот день</p>
+        </div>
+      )}
+
+      {!loading && meals.length > 0 && (
+        <>
+          <div className="space-y-3">
+            {meals.map((m) => (
+              <MealCard key={m.id} meal={m} onDelete={handleDelete} onUpdate={handleUpdate} />
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 text-right mt-3">
+            Итого за день: {totalCal} ккал
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
