@@ -19,6 +19,13 @@ Gemini API key must stay on the server. All image analysis goes through
 `create-next-app` scaffolded with Tailwind 4 and `@tailwindcss/postcss`.
 No `tailwind.config.ts` needed — configuration is done via CSS.
 
+### Internationalisation — custom i18n, no library (2026-06-24)
+Two languages: English (default) and Russian.
+Choice stored in `localStorage` under key `lang`, falls back to `'en'`.
+Implementation: plain TypeScript dictionaries + `LanguageProvider` (Client Component) + `useT()` hook.
+No `next-intl` or `i18next` — scope is small, a lightweight custom solution keeps the bundle minimal.
+`Intl.DateTimeFormat` and `Intl.NumberFormat` used for locale-aware formatting.
+
 ### Dark / Light theme — class strategy (2026-06-24)
 Tailwind `darkMode: 'class'` (class on `<html>`). Choice persisted in `localStorage`.
 `ThemeProvider` is a Client Component wrapping the layout; it reads `localStorage` on
