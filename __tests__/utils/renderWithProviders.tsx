@@ -1,0 +1,43 @@
+/*
+  Test utility: render component wrapped in ThemeProvider + LanguageProvider.
+
+  Usage:
+    renderWithProviders(<MyComponent />, { lang: 'ru' })   // Russian locale
+    renderWithProviders(<MyComponent />)                    // default English locale
+*/
+
+import React from 'react';
+import { render } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { LanguageProvider } from '@/providers/LanguageProvider';
+import type { Lang } from '@/lib/i18n';
+
+interface Options {
+  lang?: Lang;
+}
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>{children}</LanguageProvider>
+    </ThemeProvider>
+  );
+}
+
+export function renderWithProviders(
+  ui: React.ReactElement,
+  options: Options = {},
+): RenderResult {
+  const { lang = 'en' } = options;
+
+  /*
+    Pre-seed localStorage so LanguageProvider's useEffect picks up the
+    correct language on mount. RTL wraps render in act(), which flushes
+    all pending effects before returning, so the component will already
+    be in the correct language state after this call returns.
+  */
+  localStorage.setItem('lang', lang);
+
+  return render(ui, { wrapper: Wrapper });
+}

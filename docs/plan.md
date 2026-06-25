@@ -233,11 +233,13 @@ Canvas-утилита: сжимает изображение до 800px по д�
 
 | Файл | Что покрывает |
 |------|--------------|
-| `MacroSummary.test.tsx` | Расчёт суммы калорий, отображение цели, пустое состояние |
+| `MacroSummary.test.tsx` | Расчёт суммы калорий, отображение цели, пустое состояние, EN/RU метки |
 | `MealCard.test.tsx` | Рендер, удаление, инлайн-редактирование, отмена |
 | `AddMealForm.test.tsx` | Открытие формы, валидация, submit, отмена |
-| `PortionSelector.test.tsx` | Рендер кнопок, выделение активной, вызов onChange |
+| `PortionSelector.test.tsx` | Рендер кнопок, выделение активной, вызов onChange, EN/RU метка |
 | `compress-image.test.ts` | Успешное сжатие, ошибка загрузки изображения |
+| `ThemeProvider.test.tsx` | Переключение темы, dark-класс на html, localStorage |
+| `LanguageProvider.test.tsx` | Смена языка, перевод строк, localStorage, ошибка без провайдера |
 
 Запуск:
 ```bash
@@ -333,29 +335,30 @@ v0.1.0 (a3f9c1b)
 
 > День 6 охватывает возможности, запланированные в `.cursor/TODO.md` и `DECISIONS.md`.
 
-### 13.1 Интернационализация (i18n) 🔲
+### 13.1 Интернационализация (i18n) ✅
 
-- [ ] `src/lib/i18n.ts` — словари `en` и `ru`, тип `TranslationKey`
-- [ ] `src/providers/LanguageProvider.tsx` — React Context + хранение выбора в `localStorage`
-- [ ] Хук `useT()` — возвращает функцию перевода по ключу
-- [ ] Кнопка EN / RU в layout рядом с иконкой темы
-- [ ] Все строки в компонентах через `useT()` — никаких хардкоженных текстов
-- [ ] Дата и числа форматировать через `Intl` с учётом локали
+- [x] `src/lib/i18n.ts` — словари `en` и `ru`, тип `TranslationKey`
+- [x] `src/providers/LanguageProvider.tsx` — React Context + хранение выбора в `localStorage`
+- [x] Хук `useT()` — возвращает функцию перевода по ключу; хук `useLang()` — locale + setLang
+- [x] Кнопка EN / RU в `AppShell` (sidebar + мобильная навигация)
+- [x] Все строки в компонентах через `useT()` — никаких хардкоженных текстов
+- [x] Дата и числа форматировать через `Intl` с учётом локали (`useLang().locale`)
 
-### 13.2 Тёмная / светлая тема 🔲
+### 13.2 Тёмная / светлая тема ✅
 
-- [ ] `src/providers/ThemeProvider.tsx` — класс `dark` на `<html>`, `localStorage`, React Context
-- [ ] Кнопка переключения темы в layout (иконки `Sun` / `Moon` из lucide-react)
-- [ ] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
-- [ ] Мета-тег `theme-color` переключается динамически под светлую/тёмную тему
+- [x] `src/providers/ThemeProvider.tsx` — класс `dark` на `<html>`, `localStorage`, React Context
+- [x] Кнопка переключения темы в `AppShell` (иконки `Sun` / `Moon` из lucide-react)
+- [x] Все компоненты покрыты `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
+- [x] Мета-тег `theme-color` переключается динамически под светлую/тёмную тему
+- [x] Анти-FOUC инлайн-скрипт в `layout.tsx` — применяет сохранённый класс до гидратации React
 
-### 13.3 Адаптивный layout (mobile + desktop) 🔲
+### 13.3 Адаптивный layout (mobile + desktop) ✅
 
-- [ ] Мобильный (`< md`): нижняя навигация остаётся как есть
-- [ ] Десктопный (`md+`): левая боковая панель навигации, контент `max-w-2xl` по центру
-- [ ] Переключение реализовано через Tailwind responsive-префиксы без JS breakpoint detection
+- [x] Мобильный (`< md`): нижняя навигация остаётся как есть
+- [x] Десктопный (`md+`): левая боковая панель навигации, контент `max-w-2xl` по центру
+- [x] Переключение реализовано через Tailwind responsive-префиксы без JS breakpoint detection
 
 ### 13.4 Версия приложения ✅
 
 - [x] `next.config.ts` — инжекция `NEXT_PUBLIC_APP_VERSION` и `NEXT_PUBLIC_GIT_HASH` при сборке
-- [x] `src/app/layout.tsx` — бейдж версии в нижней навигации (абсолютное позиционирование, 8px)
+- [x] `src/app/layout.tsx` / `AppShell` — бейдж версии в нижней навигации и sidebar

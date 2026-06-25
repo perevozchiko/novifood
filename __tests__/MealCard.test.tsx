@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MealCard from '@/components/MealCard';
 import type { Meal } from '@/types';
+import { renderWithProviders } from './utils/renderWithProviders';
 
 const meal: Meal = {
   id: 'abc-123',
@@ -19,23 +20,23 @@ const meal: Meal = {
 
 describe('MealCard', () => {
   it('render_ShouldDisplayMealName', () => {
-    render(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />);
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
     expect(screen.getByText('Овсянка')).toBeDefined();
   });
 
   it('render_ShouldDisplayCalories', () => {
-    render(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />);
-    expect(screen.getByText('300 ккал')).toBeDefined();
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
+    expect(screen.getByText(/300 ккал/)).toBeDefined();
   });
 
   it('render_ShouldDisplayMealTypeLabel', () => {
-    render(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />);
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
     expect(screen.getByText('Завтрак')).toBeDefined();
   });
 
   it('delete_ShouldCallOnDelete_WhenDeleteButtonClicked', async () => {
     const onDelete = vi.fn().mockResolvedValue(undefined);
-    render(<MealCard meal={meal} onDelete={onDelete} onUpdate={vi.fn()} />);
+    renderWithProviders(<MealCard meal={meal} onDelete={onDelete} onUpdate={vi.fn()} />, { lang: 'ru' });
     fireEvent.click(screen.getByLabelText('Удалить'));
     await waitFor(() => {
       expect(onDelete).toHaveBeenCalledWith('abc-123');
@@ -44,7 +45,7 @@ describe('MealCard', () => {
 
   it('edit_ShouldShowEditForm_WhenEditButtonClicked', async () => {
     const user = userEvent.setup();
-    render(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />);
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
     await user.click(screen.getByLabelText('Редактировать'));
     expect(screen.getByText('Сохранить')).toBeDefined();
   });
@@ -52,7 +53,7 @@ describe('MealCard', () => {
   it('edit_ShouldCallOnUpdate_WhenSaveClicked', async () => {
     const onUpdate = vi.fn().mockResolvedValue({ ...meal, name: 'Гречка' });
     const user = userEvent.setup();
-    render(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={onUpdate} />);
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={onUpdate} />, { lang: 'ru' });
 
     await user.click(screen.getByLabelText('Редактировать'));
 
@@ -68,7 +69,7 @@ describe('MealCard', () => {
 
   it('editCancel_ShouldRestoreOriginalData_WhenCancelClicked', async () => {
     const user = userEvent.setup();
-    render(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />);
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
 
     await user.click(screen.getByLabelText('Редактировать'));
     await user.click(screen.getByText('Отмена'));

@@ -3,6 +3,7 @@
 
   Server component: pre-fetches weight history and passes it to a
   client component for interactive display and entry.
+  The page heading is rendered inside WeightClient so it can use useT().
 */
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,6 @@ export default async function WeightPage() {
   const history = await getWeightHistory();
   return (
     <div className="pt-6">
-      <h1 className="text-2xl font-bold mb-6">Вес</h1>
       <WeightClient initialHistory={history} />
     </div>
   );

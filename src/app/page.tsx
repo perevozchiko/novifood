@@ -3,6 +3,8 @@
 
   Fetches today's meals and settings server-side, passes them to a
   client-side DiaryClient component that manages optimistic updates.
+  The page header (title + date) is rendered inside DiaryClient so it
+  can use the i18n hook.
 */
 
 export const dynamic = 'force-dynamic';
@@ -19,20 +21,9 @@ export default async function HomePage() {
   const dateStr = todayDateStr();
   const [meals, settings] = await Promise.all([getMealsByDate(dateStr), getSettings()]);
 
-  const today = new Date().toLocaleDateString('ru-RU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
-
   return (
     <div className="pt-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-green-700">NoviFood</h1>
-        <p className="text-sm text-gray-500 capitalize">{today}</p>
-      </header>
-
-      <DiaryClient initialMeals={meals} settings={settings} />
+      <DiaryClient initialMeals={meals} settings={settings} dateStr={dateStr} />
     </div>
   );
 }

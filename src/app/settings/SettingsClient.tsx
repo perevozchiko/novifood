@@ -9,19 +9,23 @@
 import { useState } from 'react';
 import { updateSettings } from '@/lib/settings';
 import type { Settings } from '@/types';
+import type { TranslationKey } from '@/lib/i18n';
+import { useT } from '@/providers/LanguageProvider';
 
 interface Props {
   settings: Settings;
 }
 
-const FIELDS: { key: keyof Omit<Settings, 'id'>; label: string; unit: string }[] = [
-  { key: 'calorie_goal', label: 'Калории', unit: 'ккал' },
-  { key: 'protein_goal', label: 'Белки', unit: 'г' },
-  { key: 'fat_goal', label: 'Жиры', unit: 'г' },
-  { key: 'carbs_goal', label: 'Углеводы', unit: 'г' },
-];
-
 export default function SettingsClient({ settings }: Props) {
+  const t = useT();
+
+  const fields: { key: keyof Omit<Settings, 'id'>; labelKey: TranslationKey; unitKey: TranslationKey }[] = [
+    { key: 'calorie_goal', labelKey: 'settings_calories', unitKey: 'settings_kcal' },
+    { key: 'protein_goal', labelKey: 'settings_protein', unitKey: 'settings_g' },
+    { key: 'fat_goal', labelKey: 'settings_fat', unitKey: 'settings_g' },
+    { key: 'carbs_goal', labelKey: 'settings_carbs', unitKey: 'settings_g' },
+  ];
+
   const [form, setForm] = useState({
     calorie_goal: settings.calorie_goal,
     protein_goal: settings.protein_goal,
@@ -47,40 +51,45 @@ export default function SettingsClient({ settings }: Props) {
       await updateSettings(form);
       setSaved(true);
     } catch {
-      setError('Не удалось сохранить. Попробуйте снова.');
+      setError(t('settings_save_error'));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {FIELDS.map(({ key, label, unit }) => (
-        <div key={key} className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="flex justify-between text-sm mb-2">
-            <span className="font-medium text-gray-900">{label}</span>
-            <span className="text-gray-400">{unit}</span>
-          </label>
-          <input
-            type="number"
-            min={0}
-            value={form[key]}
-            onChange={(e) => setField(key, Number(e.target.value))}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-        </div>
-      ))}
+    <>
+      <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-50">{t('settings_title')}</h1>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('settings_subtitle')}</p>
 
-      {error && <p className="text-sm text-red-500 px-1">{error}</p>}
-      {saved && <p className="text-sm text-green-600 px-1">Цели сохранены ✓</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {fields.map(({ key, labelKey, unitKey }) => (
+          <div key={key} className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm">
+            <label className="flex justify-between text-sm mb-2">
+              <span className="font-medium text-gray-900 dark:text-gray-50">{t(labelKey)}</span>
+              <span className="text-gray-400 dark:text-gray-500">{t(unitKey)}</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={form[key]}
+              onChange={(e) => setField(key, Number(e.target.value))}
+              className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+        ))}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="w-full bg-green-600 text-white rounded-2xl py-3 font-medium disabled:opacity-50 hover:bg-green-700 transition-colors shadow-sm"
-      >
-        {saving ? 'Сохранение…' : 'Сохранить'}
-      </button>
-    </form>
+        {error && <p className="text-sm text-red-500 px-1">{error}</p>}
+        {saved && <p className="text-sm text-green-600 px-1">{t('settings_saved')}</p>}
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full bg-green-600 text-white rounded-2xl py-3 font-medium disabled:opacity-50 hover:bg-green-700 transition-colors shadow-sm"
+        >
+          {saving ? t('settings_saving') : t('settings_save')}
+        </button>
+      </form>
+    </>
   );
 }

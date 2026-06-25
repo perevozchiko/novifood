@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import MacroSummary from '@/components/MacroSummary';
 import type { Meal, Settings } from '@/types';
+import { renderWithProviders } from './utils/renderWithProviders';
 
 const settings: Settings = {
   id: 1,
@@ -40,24 +41,31 @@ const meals: Meal[] = [
 
 describe('MacroSummary', () => {
   it('render_ShouldDisplayCorrectCalorieTotal', () => {
-    render(<MacroSummary meals={meals} settings={settings} />);
+    renderWithProviders(<MacroSummary meals={meals} settings={settings} />, { lang: 'ru' });
     expect(screen.getByText('700')).toBeDefined();
   });
 
   it('render_ShouldShowCalorieGoal', () => {
-    render(<MacroSummary meals={meals} settings={settings} />);
+    renderWithProviders(<MacroSummary meals={meals} settings={settings} />, { lang: 'ru' });
     expect(screen.getByText(/2200 ккал/)).toBeDefined();
   });
 
   it('render_ShouldShowZeroCalories_WhenNoMeals', () => {
-    render(<MacroSummary meals={[]} settings={settings} />);
+    renderWithProviders(<MacroSummary meals={[]} settings={settings} />, { lang: 'ru' });
     expect(screen.getByText('0')).toBeDefined();
   });
 
   it('render_ShouldDisplayMacroLabels', () => {
-    render(<MacroSummary meals={meals} settings={settings} />);
+    renderWithProviders(<MacroSummary meals={meals} settings={settings} />, { lang: 'ru' });
     expect(screen.getByText('Белки')).toBeDefined();
     expect(screen.getByText('Жиры')).toBeDefined();
     expect(screen.getByText('Углеводы')).toBeDefined();
+  });
+
+  it('render_ShouldDisplayEnglishLabels_WhenLangIsEn', () => {
+    renderWithProviders(<MacroSummary meals={meals} settings={settings} />, { lang: 'en' });
+    expect(screen.getByText('Protein')).toBeDefined();
+    expect(screen.getByText('Fat')).toBeDefined();
+    expect(screen.getByText('Carbs')).toBeDefined();
   });
 });

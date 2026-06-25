@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
-import Link from 'next/link';
 import './globals.css';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { LanguageProvider } from '@/providers/LanguageProvider';
+import AppShell from '@/components/AppShell';
 
 const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
@@ -12,45 +14,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
-        <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-24">{children}</main>
-
-        {/* Bottom navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-10">
-          <Link
-            href="/"
-            className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-600 transition-colors"
-          >
-            <span className="text-xl">🥗</span>
-            Дневник
-          </Link>
-          <Link
-            href="/history"
-            className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-600 transition-colors"
-          >
-            <span className="text-xl">📅</span>
-            История
-          </Link>
-          <Link
-            href="/weight"
-            className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-600 transition-colors"
-          >
-            <span className="text-xl">⚖️</span>
-            Вес
-          </Link>
-          <Link
-            href="/settings"
-            className="flex flex-col items-center gap-1 text-xs text-gray-500 hover:text-green-600 transition-colors"
-          >
-            <span className="text-xl">⚙️</span>
-            Цели
-          </Link>
-          {/* Version badge — absolute overlay, does not affect nav height */}
-          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] text-gray-300 pointer-events-none select-none">
-            v{process.env.NEXT_PUBLIC_APP_VERSION} ({process.env.NEXT_PUBLIC_GIT_HASH})
-          </span>
-        </nav>
+    <html lang="en" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        {/* theme-color is updated dynamically by ThemeProvider on the client */}
+        <meta name="theme-color" content="#ffffff" />
+        {/* Prevent flash of wrong theme: apply stored class before React hydrates */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="min-h-full">
+        <ThemeProvider>
+          <LanguageProvider>
+            <AppShell>{children}</AppShell>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

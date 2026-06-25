@@ -1,37 +1,23 @@
 # TODO — NoviFood
 
-## Ready to implement
+## Done (Day 1–5 + Version + Day 6)
 
-- [ ] Day 2: `MacroSummary.tsx` — кольца/бары прогресса КБЖУ
-- [ ] Day 2: `AddMealForm.tsx` — форма ручного ввода (название, КБЖУ, meal_type, время)
-- [ ] Day 2: подключить `addMeal` / `deleteMeal` к UI, live reload без перезагрузки страницы
-- [ ] Day 3: `CameraUpload.tsx` — `<input type="file" capture="environment">`
-- [ ] Day 3: сквозной тест: камера → compress → /api/analyze-food → Gemini → JSON
-- [ ] Day 3: `PortionSelector.tsx` — множитель 0.5x – 2x
-- [ ] Day 4: `MealCard.tsx` — inline редактирование
-- [ ] Day 4: `/history` — календарь с переходом по дням
-- [ ] Day 5: `/weight` — логирование и график веса
-- [ ] Day 5: `/settings` — изменение целей КБЖУ
-- [ ] Day 5: PWA иконки (192x192, 512x512), проверка "Add to Home Screen"
-
-## Интернационализация (добавлено 2026-06-24)
-
-- [ ] `src/lib/i18n.ts` — словари `en` (default) и `ru`, тип `TranslationKey`
-- [ ] `LanguageProvider` — хранение выбора в `localStorage`, React Context
-- [ ] Хук `useT()` — возвращает функцию перевода по ключу
-- [ ] Кнопка переключения EN / RU в layout рядом с темой
-- [ ] Все строки в компонентах через `useT()` — никаких хардкоженных текстов
-- [ ] Дата и числа форматировать через `Intl` с учётом локали
-
-## Тема и адаптивность (добавлено 2026-06-24)
-
-- [ ] `ThemeProvider` — хранение выбора в `localStorage`, класс `dark` на `<html>`
-- [ ] Кнопка переключения темы в layout (sun/moon иконки из lucide-react)
-- [ ] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
-- [ ] Десктопный layout: боковая панель навигации вместо bottom-bar при `md:` и выше
-- [ ] Мобильный layout: bottom-navigation остаётся для `< md`
-- [ ] Мета-тег `theme-color` переключается динамически под светлую/тёмную тему
-- [ ] Проверить на реальном мобильном устройстве (PWA + браузер)
+- [x] Day 1: Next.js scaffold, Supabase setup, layout, page stubs
+- [x] Day 2: MacroSummary, AddMealForm, MealCard, DiaryClient
+- [x] Day 3: CameraUpload, PortionSelector, compress-image, AI integration
+- [x] Day 4: Inline editing in MealCard, History page
+- [x] Day 5: Weight tracking, Settings, PWA icons
+- [x] Version badge (NEXT_PUBLIC_APP_VERSION + NEXT_PUBLIC_GIT_HASH)
+- [x] `src/lib/i18n.ts` — EN/RU dictionaries, `getTranslations()`, `getLocale()`
+- [x] `LanguageProvider` — localStorage persistence, `useT()`, `useLang()` hooks
+- [x] `ThemeProvider` — localStorage persistence, dark class on `<html>`, theme-color meta
+- [x] `AppShell` — responsive nav: bottom bar on mobile, sidebar on desktop (`md+`)
+- [x] Theme toggle (Sun/Moon) + language toggle (EN/RU) in layout
+- [x] All components use `dark:` Tailwind classes
+- [x] All components use `useT()` for strings
+- [x] Dates formatted via `Intl` with active locale
+- [x] Unit tests: ThemeProvider (6), LanguageProvider (6)
+- [x] All existing unit tests updated to use `renderWithProviders`
 
 ## Blocked by user action
 
