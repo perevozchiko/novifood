@@ -39,9 +39,23 @@
 - [x] `deleteWeight(id)` добавлен в `weight.ts`, кнопка удаления в `/weight`
 - [x] Новые unit-тесты: `SettingsClient.test.tsx`, `WeightClient.test.tsx`
 
+## День 13 ✅ (выполнено 2026-06-25)
+
+- [x] Исправлен ключ `meal.edit` в английском словаре (`'Редактировать'` → `'Edit'`)
+- [x] Aria-labels кнопок навигации в HistoryClient вынесены в i18n (`history.prevDay`, `history.nextDay`)
+- [x] Хардкоженные `'г'` в StatsClient заменены на `t('settings.g')`
+- [x] `offline/page.tsx` переведена на `useT()` с ключами `offline.*`
+- [x] Миграция `0002_water_intake.sql` — таблица `water_intake` + `water_goal_ml` в `settings`
+- [x] Тип `WaterIntake` и поле `water_goal_ml` в `Settings`
+- [x] `src/lib/water-intake.ts` — CRUD для учёта воды
+- [x] Компонент `WaterTracker.tsx` — виджет потребления воды на главной странице
+- [x] `SettingsClient.tsx` — поле нормы воды в форме целей
+- [x] `__tests__/WaterTracker.test.tsx` — 8 unit-тестов
+
 ## Blocked by user action
 
 - [x] Создать Supabase проект ✅
 - [x] Выполнить SQL (применено через supabase db push) ✅
+- [ ] Применить миграцию 0002: `supabase db push` (добавляет таблицу `water_intake` и колонку `water_goal_ml`)
 - [ ] Заполнить `.env.local` → добавить GEMINI_API_KEY
 - [ ] Задеплоить на Vercel, установить env vars в дашборде

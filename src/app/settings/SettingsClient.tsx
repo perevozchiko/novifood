@@ -30,6 +30,7 @@ export default function SettingsClient({ settings }: Props) {
     protein_goal: settings.protein_goal,
     fat_goal: settings.fat_goal,
     carbs_goal: settings.carbs_goal,
+    water_goal_ml: settings.water_goal_ml,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -89,6 +90,7 @@ export default function SettingsClient({ settings }: Props) {
     { key: 'protein_goal', labelKey: 'settings.protein', unitKey: 'settings.g' },
     { key: 'fat_goal', labelKey: 'settings.fat', unitKey: 'settings.g' },
     { key: 'carbs_goal', labelKey: 'settings.carbs', unitKey: 'settings.g' },
+    { key: 'water_goal_ml', labelKey: 'settings.waterGoal', unitKey: 'settings.waterMl' },
   ];
 
   const version = process.env.NEXT_PUBLIC_APP_VERSION;

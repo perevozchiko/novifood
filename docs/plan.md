@@ -523,3 +523,26 @@ v0.1.0 (a3f9c1b)
 ### 21.2 Тесты ✅
 
 - [x] `__tests__/export-csv.test.ts` — 10 тестов (триггер скачивания, имя файла, заголовки, данные, экранирование)
+
+---
+
+## 📅 22. Пошаговый план спринта — День 13 (Исправления + Учёт воды) ✅
+
+### 22.1 Исправление ошибок ✅
+
+- [x] `src/lib/i18n.ts` — исправлен ключ `meal.edit` в английском словаре (`'Редактировать'` → `'Edit'`)
+- [x] `src/app/history/HistoryClient.tsx` — `aria-label` кнопок навигации по дням вынесены в i18n (`history.prevDay`, `history.nextDay`)
+- [x] `src/app/stats/StatsClient.tsx` — хардкоженные единицы `'г'` заменены на `t('settings.g')` (поддержка EN/RU)
+- [x] `src/app/offline/page.tsx` — страница переведена на `useT()`: тексты «Нет подключения», «…офлайн-режим…», кнопка «Обновить» — ключи `offline.*`
+
+### 22.2 Учёт потребления воды ✅
+
+- [x] `supabase/migrations/0002_water_intake.sql` — таблица `water_intake` (id, created_at, logged_at, amount_ml) + колонка `water_goal_ml` в `settings` (default 2000)
+- [x] `src/types/index.ts` — тип `WaterIntake`, поле `water_goal_ml` добавлено в `Settings`
+- [x] `src/lib/water-intake.ts` — `getWaterByDate` (server), `addWaterIntake`, `deleteWaterIntake` (client)
+- [x] `src/lib/i18n.ts` — ключи `water.*` (прогресс, добавление, удаление) и `settings.waterGoal` / `settings.waterMl`
+- [x] `src/components/WaterTracker.tsx` — виджет: прогресс-бар, кнопки +150/+250/+500 мл, список записей дня с удалением
+- [x] `src/app/page.tsx` — `DiaryDataLoader` загружает `getWaterByDate(dateStr)` параллельно с блюдами
+- [x] `src/app/DiaryClient.tsx` — принимает `initialWater`, отображает `WaterTracker` между MacroSummary и кнопками добавления
+- [x] `src/app/settings/SettingsClient.tsx` — поле «Дневная норма воды» (мл) добавлено в форму целей
+- [x] `__tests__/WaterTracker.test.tsx` — 8 тестов (рендер, прогресс, кнопки, добавление, удаление)

@@ -185,9 +185,9 @@ export default function StatsClient({ weekStats, settings, streak }: Props) {
           <div className="grid grid-cols-4 gap-3">
             {[
               { label: t('stats.calories'), value: avg.calories, unit: t('stats.calories') },
-              { label: t('stats.protein'), value: avg.protein, unit: 'г' },
-              { label: t('stats.fat'), value: avg.fat, unit: 'г' },
-              { label: t('stats.carbs'), value: avg.carbs, unit: 'г' },
+              { label: t('stats.protein'), value: avg.protein, unit: t('settings.g') },
+              { label: t('stats.fat'), value: avg.fat, unit: t('settings.g') },
+              { label: t('stats.carbs'), value: avg.carbs, unit: t('settings.g') },
             ].map(({ label, value, unit }) => (
               <div key={label} className="text-center">
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase mb-1">
@@ -214,9 +214,9 @@ export default function StatsClient({ weekStats, settings, streak }: Props) {
             <span className="text-sm text-gray-400 dark:text-gray-500">{t('stats.calories')}</span>
           </div>
           <div className="flex gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-            <span>{t('stats.protein')}: {totals.protein}г</span>
-            <span>{t('stats.fat')}: {totals.fat}г</span>
-            <span>{t('stats.carbs')}: {totals.carbs}г</span>
+            <span>{t('stats.protein')}: {totals.protein}{t('settings.g')}</span>
+            <span>{t('stats.fat')}: {totals.fat}{t('settings.g')}</span>
+            <span>{t('stats.carbs')}: {totals.carbs}{t('settings.g')}</span>
           </div>
         </div>
       )}

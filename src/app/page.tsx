@@ -13,6 +13,7 @@ import { Suspense } from 'react';
 import { connection } from 'next/server';
 import { getMealsByDate, getMealDates, computeStreak } from '@/lib/meals';
 import { getSettings } from '@/lib/settings';
+import { getWaterByDate } from '@/lib/water-intake';
 import DiaryClient from './DiaryClient';
 import TodayDate from './TodayDate';
 
@@ -42,13 +43,21 @@ function DiarySkeleton() {
 async function DiaryDataLoader() {
   await connection();
   const dateStr = new Date().toISOString().slice(0, 10);
-  const [meals, settings, loggedDates] = await Promise.all([
+  const [meals, settings, loggedDates, waterEntries] = await Promise.all([
     getMealsByDate(dateStr),
     getSettings(),
     getMealDates(),
+    getWaterByDate(dateStr),
   ]);
   const streak = computeStreak(loggedDates);
-  return <DiaryClient initialMeals={meals} settings={settings} streak={streak} />;
+  return (
+    <DiaryClient
+      initialMeals={meals}
+      settings={settings}
+      streak={streak}
+      initialWater={waterEntries}
+    />
+  );
 }
 
 export default function HomePage() {

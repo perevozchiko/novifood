@@ -30,7 +30,7 @@ const dictionaries = {
     'macro.goal': 'of {0}',
 
     // MealCard
-    'meal.edit': 'Редактировать',
+    'meal.edit': 'Edit',
     'meal.delete': 'Delete',
     'meal.save': 'Save',
     'meal.cancel': 'Cancel',
@@ -152,6 +152,33 @@ const dictionaries = {
     // History search
     'history.search': 'Search meals…',
     'history.searchEmpty': 'No meals match "{0}"',
+
+    // History navigation aria-labels
+    'history.prevDay': 'Previous day',
+    'history.nextDay': 'Next day',
+
+    // Offline page
+    'offline.title': 'No connection',
+    'offline.hint': 'The app is in offline mode. Check your internet and reload the page.',
+    'offline.refresh': 'Reload',
+
+    // Water intake
+    'water.title': 'Water',
+    'water.goal': 'Daily goal',
+    'water.ml': 'ml',
+    'water.progress': '{0} / {1} ml',
+    'water.add150': '+150 ml',
+    'water.add250': '+250 ml',
+    'water.add500': '+500 ml',
+    'water.empty': 'No entries yet',
+    'water.deleteAria': 'Delete entry',
+    'water.deleteError': 'Failed to delete. Try again.',
+    'water.saveError': 'Failed to save. Try again.',
+
+    // Settings — water goal
+    'settings.water': 'Water',
+    'settings.waterGoal': 'Daily water goal',
+    'settings.waterMl': 'ml',
   },
   ru: {
     // Navigation
@@ -294,6 +321,33 @@ const dictionaries = {
     // History search
     'history.search': 'Поиск по блюдам…',
     'history.searchEmpty': 'Ничего не найдено по запросу «{0}»',
+
+    // History navigation aria-labels
+    'history.prevDay': 'Предыдущий день',
+    'history.nextDay': 'Следующий день',
+
+    // Offline page
+    'offline.title': 'Нет подключения',
+    'offline.hint': 'Приложение работает в офлайн-режиме. Проверьте интернет и обновите страницу.',
+    'offline.refresh': 'Обновить',
+
+    // Water intake
+    'water.title': 'Вода',
+    'water.goal': 'Дневная норма',
+    'water.ml': 'мл',
+    'water.progress': '{0} / {1} мл',
+    'water.add150': '+150 мл',
+    'water.add250': '+250 мл',
+    'water.add500': '+500 мл',
+    'water.empty': 'Нет записей',
+    'water.deleteAria': 'Удалить запись',
+    'water.deleteError': 'Не удалось удалить. Попробуйте снова.',
+    'water.saveError': 'Не удалось сохранить. Попробуйте снова.',
+
+    // Settings — water goal
+    'settings.water': 'Вода',
+    'settings.waterGoal': 'Дневная норма воды',
+    'settings.waterMl': 'мл',
   },
 } as const;
 

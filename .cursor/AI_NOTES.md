@@ -31,6 +31,7 @@
 | 8   | ✅ Done | Dynamic theme-color meta tag, plan.md updated (sections 15–16) |
 | 9   | ✅ Done | /stats page (SVG chart, averages, streak), quick-add recent meals, streak on home, settings appearance section, 17 new tests |
 | 10  | ✅ Done | CSV export (meals + weight), history search, PWA SW offline fallback, 10 new tests (total: 80/80) |
+| 13  | ✅ Done | Bug fixes (i18n, aria-labels, units), water intake tracking, WaterTracker widget, water goal in settings, 8 new tests (total: 88/88) |
 
 ## Performance Fix (2026-06-25)
 
@@ -79,10 +80,26 @@ Fix:
 - `NEXT_PUBLIC_GIT_HASH` — read from `git rev-parse --short HEAD` at build time
 - Displayed as `v0.1.0 (abc1234)` badge in the bottom nav bar
 
+## Day 13 Bug Fixes (2026-06-25)
+
+- `meal.edit` in EN dictionary was `'Редактировать'` — corrected to `'Edit'`
+- `aria-label` on history prev/next buttons was hardcoded Russian — moved to `history.prevDay` / `history.nextDay` i18n keys
+- `StatsClient` had hardcoded `'г'` for protein/fat/carbs units — replaced with `t('settings.g')`
+- `offline/page.tsx` had no i18n — rewritten with `useT()` and new `offline.*` keys
+
+## Day 13 Water Intake (2026-06-25)
+
+- New `water_intake` table (migration 0002) + `water_goal_ml` column in `settings` (default 2000 ml)
+- `src/lib/water-intake.ts` — server-side `getWaterByDate`, client-side `addWaterIntake` / `deleteWaterIntake`
+- `WaterTracker` component on the home diary page: progress bar (blue → green at goal), +150/250/500 ml quick-add, entry list with delete
+- `SettingsClient` extended with water goal field
+- **Important**: migration `0002_water_intake.sql` must be applied via `supabase db push` before using water tracking
+
 ## Infrastructure Status
 
 - Supabase project: `awdhmtctrlynbdzylrvw` (eu-central-1) — linked via CLI
 - Migrations applied: `supabase/migrations/0001_init.sql` ✅
+- Pending migration: `supabase/migrations/0002_water_intake.sql` ⚠️ run `supabase db push`
 - Tables verified via REST API: `meals` ✅ `settings` ✅ (default row) `weight` ✅
 - `.env.local` filled with URL + anon key ⚠️ GEMINI_API_KEY still empty
 - `npm run dev` running on http://localhost:3000
