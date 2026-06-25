@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-06-25 (v1.4 — Day 6: Polish + Performance fix)
+
+Added:
+
+- `src/lib/i18n.ts` — EN/RU translation dictionaries, `translate()`, `formatDate()`, `formatNumber()` utilities
+- `src/providers/LanguageProvider.tsx` — React Context for locale, `useT()` hook, `localStorage` persistence
+- `src/providers/ThemeProvider.tsx` — dark/light theme toggle via `.dark` class on `<html>`, `useTheme()` hook
+- `src/app/ThemeToggle.tsx` — Sun/Moon toggle button (lucide-react)
+- `src/app/LangToggle.tsx` — EN/RU toggle button
+- `src/app/NavLinks.tsx` — shared navigation links for sidebar and bottom bar variants
+- `src/app/TodayDate.tsx` — client component for request-time date display
+- `__tests__/test-utils.tsx` — `renderWithProviders` wrapper with LanguageProvider for unit tests
+- Skeleton loading states (`animate-pulse`) in `/`, `/history`, `/weight`, `/settings` pages
+
+Fixed:
+
+- Tab switching delay: enabled `cacheComponents: true` (Next.js 16 PPR), wrapped all Supabase fetches in `<Suspense>` with `connection()` — static page shells now render instantly on navigation
+- Removed deprecated `export const dynamic = 'force-dynamic'` from all pages
+
+Refactored:
+
+- All components updated with `dark:` Tailwind v4 classes (`@custom-variant dark`)
+- All hardcoded UI strings replaced with `useT()` translations
+- `layout.tsx` — added ThemeProvider + LanguageProvider, anti-FOUC script, desktop sidebar (`md+`)
+- `globals.css` — switched to class-based dark mode (`@custom-variant dark (&:where(.dark,.dark *))`)
+- `HistoryClient` — today's date computed client-side (no server prop needed)
+
 ## 2026-06-25 (v1.3 — Version display)
 
 Added:

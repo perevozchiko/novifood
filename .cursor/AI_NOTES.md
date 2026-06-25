@@ -25,7 +25,35 @@
 | 3   | ✅ Done | CameraUpload, Gemini end-to-end, PortionSelector |
 | 4   | ✅ Done | MealCard inline edit, /history calendar |
 | 5   | ✅ Done | /weight, /settings, PWA icons |
-| 6   | 🔲 Next | i18n (EN/RU), dark/light theme, responsive desktop sidebar |
+| 6   | ✅ Done | i18n (EN/RU), dark/light theme, responsive desktop sidebar |
+| Perf| ✅ Done | cacheComponents (PPR), Suspense streaming, instant tab nav |
+
+## Performance Fix (2026-06-25)
+
+Root cause of tab switching delay: every page navigation triggered a full
+server-side Supabase fetch via `force-dynamic`.
+
+Fix:
+- `cacheComponents: true` in next.config.ts enables Next.js 16 PPR
+- Each page now has a static prerendered shell (h1, nav) + dynamic Suspense boundary
+- `connection()` from `next/server` defers Supabase calls to request time
+- React Activity (Cache Components) preserves up to 3 route states in memory
+- Skeleton loaders (`animate-pulse`) provide immediate visual feedback
+
+## i18n (2026-06-25)
+
+- Two locales: `en` (default for new users), `ru` (default for existing Russian UI)
+- Default: `ru` (preserves existing user experience)
+- Storage key: `lang` in localStorage
+- Dictionaries: `src/lib/i18n.ts` — all UI strings covered
+- Hook: `useT()` from `src/providers/LanguageProvider.tsx`
+
+## Dark Theme (2026-06-25)
+
+- Tailwind v4 class strategy: `@custom-variant dark (&:where(.dark, .dark *))`
+- Toggle: `.dark` class on `<html>`, localStorage key `theme`
+- Anti-FOUC: inline `<script>` in `<head>` reads localStorage before first paint
+- Respects OS `prefers-color-scheme` as initial default
 
 ## Version Display
 
