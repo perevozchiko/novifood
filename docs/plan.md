@@ -481,3 +481,45 @@ v0.1.0 (a3f9c1b)
 
 - [x] `__tests__/computeStreak.test.ts` — 8 тестов чистой функции (0 дней, 1 день, серия, разрыв, дубли)
 - [x] `__tests__/StatsClient.test.tsx` — 9 тестов (рендер, нет данных, среднее, итого, стрик)
+
+---
+
+## 📅 20. Пошаговый план спринта — День 11 (Экспорт и поиск) ✅
+
+### 20.1 Экспорт данных в CSV ✅
+
+- [x] `src/lib/export-csv.ts` — `exportMealsCsv(meals)` и `exportWeightCsv(history)`
+  - Клиентская утилита: Blob → `<a>` download, без серверного запроса
+  - BOM (`\uFEFF`) для корректного открытия в Excel
+  - Экранирование запятых и кавычек в полях
+- [x] `src/lib/i18n.ts` — ключи `settings.data`, `settings.export.*`
+- [x] `src/app/settings/SettingsClient.tsx` — раздел «Данные»: кнопки «Экспорт питания» и «Экспорт веса»
+  - Lazy fetch данных при клике (не при загрузке страницы)
+  - Состояния загрузки на кнопках
+
+### 20.2 Поиск по истории блюд ✅
+
+- [x] `src/lib/i18n.ts` — ключи `history.search`, `history.searchEmpty`
+- [x] `src/app/history/HistoryClient.tsx` — поле поиска появляется над списком блюд
+  - Фильтрация по имени блюда и заметкам (case-insensitive)
+  - Иконка Search + крестик очистки (`lucide-react`)
+  - MacroSummary показывает итоги за весь день (не фильтрованные)
+  - Сообщение «Ничего не найдено» при пустом результате
+
+---
+
+## 📅 21. Пошаговый план спринта — День 12 (PWA + тесты) ✅
+
+### 21.1 PWA Service Worker с offline fallback ✅
+
+- [x] `public/sw.js` — сервис-воркер:
+  - На install: прекешируются `/` и `/offline`
+  - Стратегия navigation: network-first → при ошибке возвращает `/offline`
+  - Стратегия assets: cache-first (статика, иконки, JS чанки)
+  - API-роуты (`/api/*`) не перехватываются
+- [x] `src/app/offline/page.tsx` — страница «Нет подключения» с кнопкой «Обновить»
+- [x] `src/app/layout.tsx` — регистрация SW через inline скрипт (event `load`)
+
+### 21.2 Тесты ✅
+
+- [x] `__tests__/export-csv.test.ts` — 10 тестов (триггер скачивания, имя файла, заголовки, данные, экранирование)

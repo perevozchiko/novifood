@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-25 (v1.7 — CSV export, history search, PWA offline)
+
+Added:
+
+- `src/lib/export-csv.ts` — client-side CSV export for meals and weight (BOM for Excel, field escaping)
+- Settings page: «Data» section with «Export meals (CSV)» and «Export weight (CSV)» buttons
+- History page: real-time search bar filters meals by name or notes; clears with ✕ button
+- `public/sw.js` — service worker: network-first navigation, cache-first assets, offline fallback
+- `src/app/offline/page.tsx` — offline fallback page with «Refresh» button
+- `__tests__/export-csv.test.ts` — 10 unit tests for CSV export utilities
+
 ## 2026-06-25 (v1.6 — Stats page, quick-add, streak, settings UX)
 
 Added:
