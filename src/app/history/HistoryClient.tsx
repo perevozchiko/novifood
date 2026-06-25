@@ -7,16 +7,12 @@
   allows editing and deleting entries inline.
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import MealCard from '@/components/MealCard';
 import { deleteMeal, updateMeal } from '@/lib/meals';
 import type { Meal } from '@/types';
-
-interface Props {
-  today: string;
-}
 
 function formatDisplay(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('ru-RU', {
@@ -32,8 +28,9 @@ function addDays(dateStr: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default function HistoryClient({ today }: Props) {
-  const [selectedDate, setSelectedDate] = useState(today);
+export default function HistoryClient() {
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
 
