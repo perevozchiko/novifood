@@ -49,7 +49,10 @@ export default function CameraUpload({ onConfirm }: Props) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Server error ${res.status}`);
+        const msg = res.status === 429
+          ? t('camera.errorQuota')
+          : data.error || t('camera.errorAnalysis');
+        throw new Error(msg);
       }
 
       const data: FoodAnalysis = await res.json();

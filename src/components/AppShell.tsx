@@ -12,18 +12,17 @@
 import Link from 'next/link';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/providers/ThemeProvider';
-import { useLang, useT } from '@/providers/LanguageProvider';
+import { useT } from '@/providers/LanguageProvider';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { theme, toggle: toggleTheme } = useTheme();
-  const { lang, setLang } = useLang();
-  const t = useT();
+  const { theme, toggleTheme } = useTheme();
+  const { locale, setLocale, t } = useT();
 
   const navItems = [
-    { href: '/', icon: '🥗', labelKey: 'nav_diary' as const },
-    { href: '/history', icon: '📅', labelKey: 'nav_history' as const },
-    { href: '/weight', icon: '⚖️', labelKey: 'nav_weight' as const },
-    { href: '/settings', icon: '⚙️', labelKey: 'nav_goals' as const },
+    { href: '/', icon: '🥗', labelKey: 'nav.diary' as const },
+    { href: '/history', icon: '📅', labelKey: 'nav.history' as const },
+    { href: '/weight', icon: '⚖️', labelKey: 'nav.weight' as const },
+    { href: '/settings', icon: '⚙️', labelKey: 'nav.goals' as const },
   ];
 
   const ThemeIcon = theme === 'dark' ? Sun : Moon;
@@ -62,11 +61,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <ThemeIcon size={16} />
           </button>
           <button
-            onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
-            aria-label={lang === 'en' ? 'Switch to Russian' : 'Switch to English'}
+            onClick={() => setLocale(locale === 'en' ? 'ru' : 'en')}
+            aria-label={locale === 'en' ? 'Switch to Russian' : 'Switch to English'}
             className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            {lang === 'en' ? 'RU' : 'EN'}
+            {locale === 'en' ? 'RU' : 'EN'}
           </button>
           <span className="ml-auto text-[8px] text-gray-300 dark:text-gray-700 pointer-events-none select-none">
             v{process.env.NEXT_PUBLIC_APP_VERSION}&nbsp;({process.env.NEXT_PUBLIC_GIT_HASH})
@@ -107,11 +106,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <ThemeIcon size={12} />
           </button>
           <button
-            onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
-            aria-label={lang === 'en' ? 'Switch to Russian' : 'Switch to English'}
+            onClick={() => setLocale(locale === 'en' ? 'ru' : 'en')}
+            aria-label={locale === 'en' ? 'Switch to Russian' : 'Switch to English'}
             className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 hover:text-green-700 dark:hover:text-green-400 px-1 transition-colors"
           >
-            {lang === 'en' ? 'RU' : 'EN'}
+            {locale === 'en' ? 'RU' : 'EN'}
           </button>
         </div>
 

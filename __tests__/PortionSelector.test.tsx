@@ -35,11 +35,11 @@ describe('PortionSelector', () => {
 
   it('render_ShouldShowPortionLabel_InRussian', () => {
     renderWithProviders(<PortionSelector value={1} onChange={vi.fn()} />, { lang: 'ru' });
-    expect(screen.getByText('Размер порции')).toBeDefined();
+    expect(screen.getByText('Порция')).toBeDefined();
   });
 
   it('render_ShouldShowPortionLabel_InEnglish', () => {
     renderWithProviders(<PortionSelector value={1} onChange={vi.fn()} />, { lang: 'en' });
-    expect(screen.getByText('Portion size')).toBeDefined();
+    expect(screen.getByText('Portion')).toBeDefined();
   });
 });

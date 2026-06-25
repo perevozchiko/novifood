@@ -3,11 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
 
 function ThemeDisplay() {
-  const { theme, toggle } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   return (
     <div>
       <span data-testid="theme">{theme}</span>
-      <button onClick={toggle}>Toggle</button>
+      <button onClick={toggleTheme}>Toggle</button>
     </div>
   );
 }
