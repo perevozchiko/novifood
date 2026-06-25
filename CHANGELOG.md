@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-25 (v1.3 — Version display)
+
+Added:
+
+- `next.config.ts` — build-time injection of `NEXT_PUBLIC_APP_VERSION` (`0.1.0`) and `NEXT_PUBLIC_GIT_HASH` (short git commit hash via `execSync`)
+- `src/app/layout.tsx` — subtle version badge `v0.1.0 (abc1234)` in bottom navigation bar, absolutely positioned, does not affect nav height
+
+Refactored:
+
+- `docs/plan.md` — updated to v1.3; added section 12 (version display) and section 13 (Day 6 sprint: i18n, dark/light theme, responsive layout) with completion markers
+
 ## 2026-06-24 (v1.2 — Days 2–5 + Testing)
 
 Added:

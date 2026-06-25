@@ -21,10 +21,17 @@
 | Day | Status | Topic |
 |-----|--------|-------|
 | 1   | ✅ Done | Infrastructure, scaffold, all lib files, build passing |
-| 2   | ⬜ Next | MacroSummary, AddMealForm, addMeal/deleteMeal live |
-| 3   | ⬜     | CameraUpload, Gemini end-to-end, PortionSelector |
-| 4   | ⬜     | MealCard inline edit, /history calendar |
-| 5   | ⬜     | /weight, /settings, PWA icons |
+| 2   | ✅ Done | MacroSummary, AddMealForm, addMeal/deleteMeal live |
+| 3   | ✅ Done | CameraUpload, Gemini end-to-end, PortionSelector |
+| 4   | ✅ Done | MealCard inline edit, /history calendar |
+| 5   | ✅ Done | /weight, /settings, PWA icons |
+| 6   | 🔲 Next | i18n (EN/RU), dark/light theme, responsive desktop sidebar |
+
+## Version Display
+
+- `NEXT_PUBLIC_APP_VERSION = '0.1.0'` — set manually in `next.config.ts`
+- `NEXT_PUBLIC_GIT_HASH` — read from `git rev-parse --short HEAD` at build time
+- Displayed as `v0.1.0 (abc1234)` badge in the bottom nav bar
 
 ## Infrastructure Status
 

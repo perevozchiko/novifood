@@ -46,6 +46,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span className="text-xl">⚙️</span>
             Цели
           </Link>
+          {/* Version badge — absolute overlay, does not affect nav height */}
+          <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] text-gray-300 pointer-events-none select-none">
+            v{process.env.NEXT_PUBLIC_APP_VERSION} ({process.env.NEXT_PUBLIC_GIT_HASH})
+          </span>
         </nav>
       </body>
     </html>
