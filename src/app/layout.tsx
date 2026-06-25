@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
-import Link from 'next/link';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import ThemeToggle from './ThemeToggle';
@@ -59,17 +58,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
             {/* Mobile bottom navigation (< md) */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-10">
-              <div className="flex justify-around py-2">
+              <div className="flex justify-around py-2 pb-safe">
                 <NavLinks variant="bottom" />
               </div>
-              <div className="absolute top-1 right-2 flex gap-1">
-                <ThemeToggle />
-                <LangToggle />
-              </div>
-              {/* Version badge */}
-              <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] text-gray-300 dark:text-gray-600 pointer-events-none select-none">
-                v{process.env.NEXT_PUBLIC_APP_VERSION} ({process.env.NEXT_PUBLIC_GIT_HASH})
-              </span>
             </nav>
           </LanguageProvider>
         </ThemeProvider>

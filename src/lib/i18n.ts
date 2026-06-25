@@ -134,6 +134,14 @@ const dictionaries = {
 
     // AddMealForm — recent meals
     'addMeal.recent': 'Recent',
+
+    // Settings — appearance section
+    'settings.appearance': 'Appearance',
+    'settings.theme': 'Theme',
+    'settings.theme.light': 'Light',
+    'settings.theme.dark': 'Dark',
+    'settings.language': 'Language',
+    'settings.version': 'Version',
   },
   ru: {
     // Navigation
@@ -258,6 +266,14 @@ const dictionaries = {
 
     // AddMealForm — recent meals
     'addMeal.recent': 'Недавние',
+
+    // Settings — appearance section
+    'settings.appearance': 'Внешний вид',
+    'settings.theme': 'Тема',
+    'settings.theme.light': 'Светлая',
+    'settings.theme.dark': 'Тёмная',
+    'settings.language': 'Язык',
+    'settings.version': 'Версия',
   },
 } as const;
 
