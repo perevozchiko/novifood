@@ -116,6 +116,42 @@ const dictionaries = {
     'settings.saving': 'Saving…',
     'settings.saved': 'Goals saved ✓',
     'settings.errorSave': 'Failed to save. Try again.',
+
+    // Stats
+    'nav.stats': 'Stats',
+    'stats.title': 'Weekly Statistics',
+    'stats.last7': 'Last 7 days',
+    'stats.avgDay': 'Daily average',
+    'stats.goal': 'Goal',
+    'stats.calories': 'kcal',
+    'stats.protein': 'Protein',
+    'stats.fat': 'Fat',
+    'stats.carbs': 'Carbs',
+    'stats.noData': 'No data for this period',
+    'stats.totalWeek': 'Total for the week',
+    'stats.streak': 'Day streak',
+    'stats.streakDays': '{0} d',
+
+    // AddMealForm — recent meals
+    'addMeal.recent': 'Recent',
+
+    // Settings — appearance section
+    'settings.appearance': 'Appearance',
+    'settings.theme': 'Theme',
+    'settings.theme.light': 'Light',
+    'settings.theme.dark': 'Dark',
+    'settings.language': 'Language',
+    'settings.version': 'Version',
+
+    // Settings — data export section
+    'settings.data': 'Data',
+    'settings.export.meals': 'Export meals (CSV)',
+    'settings.export.weight': 'Export weight (CSV)',
+    'settings.export.loading': 'Preparing…',
+
+    // History search
+    'history.search': 'Search meals…',
+    'history.searchEmpty': 'No meals match "{0}"',
   },
   ru: {
     // Navigation
@@ -222,6 +258,42 @@ const dictionaries = {
     'settings.saving': 'Сохранение…',
     'settings.saved': 'Цели сохранены ✓',
     'settings.errorSave': 'Не удалось сохранить. Попробуйте снова.',
+
+    // Stats
+    'nav.stats': 'Статистика',
+    'stats.title': 'Статистика за неделю',
+    'stats.last7': 'Последние 7 дней',
+    'stats.avgDay': 'Среднее в день',
+    'stats.goal': 'Цель',
+    'stats.calories': 'ккал',
+    'stats.protein': 'Белки',
+    'stats.fat': 'Жиры',
+    'stats.carbs': 'Углеводы',
+    'stats.noData': 'Нет данных за этот период',
+    'stats.totalWeek': 'Итого за неделю',
+    'stats.streak': 'Дней подряд',
+    'stats.streakDays': '{0} д',
+
+    // AddMealForm — recent meals
+    'addMeal.recent': 'Недавние',
+
+    // Settings — appearance section
+    'settings.appearance': 'Внешний вид',
+    'settings.theme': 'Тема',
+    'settings.theme.light': 'Светлая',
+    'settings.theme.dark': 'Тёмная',
+    'settings.language': 'Язык',
+    'settings.version': 'Версия',
+
+    // Settings — data export section
+    'settings.data': 'Данные',
+    'settings.export.meals': 'Экспорт питания (CSV)',
+    'settings.export.weight': 'Экспорт веса (CSV)',
+    'settings.export.loading': 'Подготовка…',
+
+    // History search
+    'history.search': 'Поиск по блюдам…',
+    'history.searchEmpty': 'Ничего не найдено по запросу «{0}»',
   },
 } as const;
 

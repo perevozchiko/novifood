@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-06-25 (v1.7 — CSV export, history search, PWA offline)
+
+Added:
+
+- `src/lib/export-csv.ts` — client-side CSV export for meals and weight (BOM for Excel, field escaping)
+- Settings page: «Data» section with «Export meals (CSV)» and «Export weight (CSV)» buttons
+- History page: real-time search bar filters meals by name or notes; clears with ✕ button
+- `public/sw.js` — service worker: network-first navigation, cache-first assets, offline fallback
+- `src/app/offline/page.tsx` — offline fallback page with «Refresh» button
+- `__tests__/export-csv.test.ts` — 10 unit tests for CSV export utilities
+
+## 2026-06-25 (v1.6 — Stats page, quick-add, streak, settings UX)
+
+Added:
+
+- `/stats` page: 7-day SVG calorie bar chart, weekly average КБЖУ, weekly totals, streak badge 🔥
+- `getMealsByDateRange`, `getRecentMeals`, `computeStreak`, `getMealDates` utilities in `meals.ts`
+- NavLinks: 5th tab 📊 Stats / Статистика
+- `AddMealForm`: lazy-loaded recent meal chips — click to fill form from last 5 unique meals
+- Home diary: streak badge (🔥 N дней подряд) shown when streak ≥ 2
+- `SettingsClient`: "Appearance" section with segmented theme/language toggles and version display
+- `__tests__/computeStreak.test.ts` — 8 unit tests for the pure streak function
+- `__tests__/StatsClient.test.tsx` — 9 unit tests for the stats component
+- `src/lib/i18n.ts` — keys for `stats.*`, `addMeal.recent`, `settings.appearance/*`
+
+Fixed:
+
+- Mobile bottom nav overcrowding: removed ThemeToggle, LangToggle, version badge from nav bar
+
+## 2026-06-25 (v1.5 — Dynamic theme-color + Docs)
+
+Added:
+
+- Dynamic `theme-color` meta tag: `#ffffff` for light theme, `#1f2937` for dark theme
+- Meta tag is updated by `ThemeProvider.applyTheme()` on every toggle
+- Anti-FOUC inline script extended to also set `theme-color` before first paint (dark mode initial load)
+- `docs/plan.md` — sections 15 (Day 7) and 16 (theme-color) added, marked ✅
+- `.cursor/TODO.md` — all implemented items marked `[x]`, Day 7 section added
+
 ## 2026-06-25 (v1.4 — Day 6: Polish + Performance fix)
 
 Added:

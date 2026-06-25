@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
-import Link from 'next/link';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import ThemeToggle from './ThemeToggle';
@@ -20,12 +19,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ru" className={`${geist.variable} h-full antialiased`}>
       {/*
         Inline script prevents flash of wrong theme by applying .dark class
-        before the first paint. Runs synchronously before any React hydration.
+        and setting theme-color meta before the first paint.
+        Runs synchronously before any React hydration.
       */}
       <head>
+        <meta name="theme-color" content="#ffffff" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}})();`,
+            __html: `(function(){var t=localStorage.getItem('theme');var dark=t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#1f2937');}})();if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js');});}`,
           }}
         />
       </head>
@@ -57,17 +58,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
             {/* Mobile bottom navigation (< md) */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-10">
-              <div className="flex justify-around py-2">
+              <div className="flex justify-around py-2 pb-safe">
                 <NavLinks variant="bottom" />
               </div>
-              <div className="absolute top-1 right-2 flex gap-1">
-                <ThemeToggle />
-                <LangToggle />
-              </div>
-              {/* Version badge */}
-              <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] text-gray-300 dark:text-gray-600 pointer-events-none select-none">
-                v{process.env.NEXT_PUBLIC_APP_VERSION} ({process.env.NEXT_PUBLIC_GIT_HASH})
-              </span>
             </nav>
           </LanguageProvider>
         </ThemeProvider>

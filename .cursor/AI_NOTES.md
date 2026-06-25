@@ -28,6 +28,9 @@
 | 6   | ✅ Done | i18n (EN/RU), dark/light theme, responsive desktop sidebar |
 | Perf| ✅ Done | cacheComponents (PPR), Suspense streaming, instant tab nav |
 | 7   | ✅ Done | MacroSummary in history, notes field, weight delete, more tests |
+| 8   | ✅ Done | Dynamic theme-color meta tag, plan.md updated (sections 15–16) |
+| 9   | ✅ Done | /stats page (SVG chart, averages, streak), quick-add recent meals, streak on home, settings appearance section, 17 new tests |
+| 10  | ✅ Done | CSV export (meals + weight), history search, PWA SW offline fallback, 10 new tests (total: 80/80) |
 
 ## Performance Fix (2026-06-25)
 
@@ -61,6 +64,7 @@ Fix:
 - Toggle: `.dark` class on `<html>`, localStorage key `theme`
 - Anti-FOUC: inline `<script>` in `<head>` reads localStorage before first paint
 - Respects OS `prefers-color-scheme` as initial default
+- Dynamic `theme-color` meta tag: `#ffffff` (light) / `#1f2937` (dark), updated by `applyTheme()` and by the anti-FOUC script
 
 ## Day 7 Features (2026-06-25)
 

@@ -41,6 +41,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       html.classList.remove('dark');
     }
+    // Keep the browser UI (address bar, status bar) in sync with the theme.
+    const themeColor = next === 'dark' ? '#1f2937' : '#ffffff';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor);
   }
 
   function toggleTheme() {

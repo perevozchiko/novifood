@@ -20,9 +20,10 @@ import { useT } from '@/providers/LanguageProvider';
 interface Props {
   initialMeals: Meal[];
   settings: Settings;
+  streak: number;
 }
 
-export default function DiaryClient({ initialMeals, settings }: Props) {
+export default function DiaryClient({ initialMeals, settings, streak }: Props) {
   const { t } = useT();
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
 
@@ -43,6 +44,21 @@ export default function DiaryClient({ initialMeals, settings }: Props) {
 
   return (
     <>
+      {/* Streak badge — shown when the user has logged meals 2+ days in a row */}
+      {streak >= 2 && (
+        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-3 py-2 mb-4">
+          <span className="text-lg">🔥</span>
+          <div>
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+              {t('stats.streak')}
+            </p>
+            <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
+              {t('stats.streakDays', streak)}
+            </p>
+          </div>
+        </div>
+      )}
+
       <MacroSummary meals={meals} settings={settings} />
 
       <div className="space-y-3 mb-6">

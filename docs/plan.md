@@ -348,6 +348,7 @@ v0.1.0 (a3f9c1b)
 - [x] Кнопка переключения темы в layout (иконки `Sun` / `Moon` из lucide-react)
 - [x] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
 - [x] Anti-FOUC скрипт в `<head>` — читает `localStorage` до первого рендера
+- [x] Мета-тег `theme-color` переключается динамически при смене темы
 
 ### 13.3 Адаптивный layout (mobile + desktop) ✅
 
@@ -380,3 +381,145 @@ v0.1.0 (a3f9c1b)
 - [x] `TodayDate` — Client Component, тоже обёрнут в `<Suspense>` (нет `new Date()` в статическом shell)
 - [x] Скелетоны с `animate-pulse` для визуальной обратной связи во время загрузки
 - [x] React Activity (`cacheComponents`) сохраняет до 3 страниц в памяти — повторная навигация мгновенная
+
+---
+
+## 📅 15. Пошаговый план спринта — День 7 (Расширение функциональности) ✅
+
+### 15.1 MacroSummary на странице истории ✅
+
+- [x] Страница `/history` — добавлен async компонент `HistoryContent` (Server Component)
+- [x] `HistoryContent` загружает `settings` server-side и передаёт в `HistoryClient`
+- [x] `HistoryClient` отображает `MacroSummary` для выбранного дня (не только для сегодня)
+
+### 15.2 Поле «Заметки» для блюда ✅
+
+- [x] `AddMealForm.tsx` — необязательное поле `notes` (textarea)
+- [x] `MealCard.tsx` — отображение `notes` как italic-подпись, редактирование в inline-форме
+- [x] Поле `notes` уже присутствует в типе `Meal` и таблице `meals.notes`
+
+### 15.3 Удаление записей веса ✅
+
+- [x] `src/lib/weight.ts` — функция `deleteWeight(id: string)`
+- [x] `WeightClient.tsx` — кнопка удаления рядом с каждой записью истории
+- [x] Optimistic UI: запись удаляется из state немедленно
+
+### 15.4 Новые unit-тесты ✅
+
+- [x] `__tests__/SettingsClient.test.tsx` — 8 тестов: рендер, изменение полей, submit, отмена
+- [x] `__tests__/WeightClient.test.tsx` — 7 тестов: рендер, добавление, удаление, график
+
+---
+
+## 🎨 16. Динамический мета-тег theme-color ✅
+
+### Назначение
+
+Мета-тег `theme-color` управляет цветом адресной строки и UI браузера на мобильных устройствах (Android Chrome, Safari iOS). При смене темы тег обновляется динамически.
+
+### Реализация
+
+| Файл | Изменение |
+|------|-----------|
+| `src/app/layout.tsx` | Статический `<meta name="theme-color">` с начальным значением (светлая тема) |
+| `src/providers/ThemeProvider.tsx` | `applyTheme()` обновляет `content` мета-тега через `document.querySelector` |
+
+- Светлая тема → `#ffffff`
+- Тёмная тема → `#1f2937` (соответствует `bg-gray-800` в Tailwind)
+
+---
+
+## 📅 17. Пошаговый план спринта — День 8 (Недельная статистика) ✅
+
+### 17.1 Утилиты для статистики ✅
+
+- [x] `src/lib/meals.ts` — `getMealsByDateRange(from, to)` — загрузка блюд за диапазон дат (server-side)
+- [x] `src/lib/meals.ts` — `getRecentMeals(limit)` — последние N уникальных блюд (client-side)
+- [x] `src/lib/meals.ts` — `computeStreak(dates)` — чистая функция подсчёта серии дней
+- [x] `src/lib/meals.ts` — `getMealDates()` — все дни с записями (server-side, для стрика)
+- [x] `src/lib/i18n.ts` — ключи `stats.*`, `addMeal.recent`, `settings.appearance/*`
+
+### 17.2 Страница статистики `/stats` ✅
+
+- [x] `src/app/stats/page.tsx` — Server Component с PPR + Suspense + skeleton
+- [x] `src/app/stats/StatsClient.tsx`:
+  - SVG bar chart: 7 баров (последние 7 дней), пунктирная линия цели, оранжевый цвет при превышении
+  - Средние КБЖУ за дни с данными
+  - Итого за неделю (калории + Б/Ж/У)
+  - Бейдж серии 🔥 (если streak > 0)
+- [x] `src/app/NavLinks.tsx` — добавлена вкладка 📊 «Статистика / Stats»
+
+---
+
+## 📅 18. Пошаговый план спринта — День 9 (Быстрое добавление) ✅
+
+### 18.1 Чипы недавних блюд в AddMealForm ✅
+
+- [x] `src/components/AddMealForm.tsx` — при открытии формы запрашивает `getRecentMeals(5)` через browser client
+- [x] Чипы-кнопки с именами блюд заполняют форму одним кликом (название + КБЖУ + тип + заметки)
+- [x] Чипы появляются только после открытия формы (lazy fetch)
+
+---
+
+## 📅 19. Пошаговый план спринта — День 10 (Стрик + UX) ✅
+
+### 19.1 Серия дней (streak) на главной странице ✅
+
+- [x] `src/app/page.tsx` — `DiaryDataLoader` дополнительно загружает `getMealDates()` и вычисляет `computeStreak()`
+- [x] `src/app/DiaryClient.tsx` — принимает `streak: number`, показывает 🔥-бейдж при streak ≥ 2
+- [x] Бейдж повторяет дизайн аналогичного блока на странице `/stats`
+
+### 19.2 Перенос настроек внешнего вида ✅
+
+- [x] `src/app/layout.tsx` — убраны `ThemeToggle`, `LangToggle`, версия из мобильного bottom bar
+- [x] `src/app/settings/SettingsClient.tsx` — добавлен раздел «Внешний вид»:
+  - Сегментный переключатель темы (Светлая / Тёмная с иконками Sun/Moon)
+  - Сегментный переключатель языка (RU / EN)
+  - Версия приложения `v0.1.0 (hash)`
+
+### 19.3 Новые unit-тесты ✅
+
+- [x] `__tests__/computeStreak.test.ts` — 8 тестов чистой функции (0 дней, 1 день, серия, разрыв, дубли)
+- [x] `__tests__/StatsClient.test.tsx` — 9 тестов (рендер, нет данных, среднее, итого, стрик)
+
+---
+
+## 📅 20. Пошаговый план спринта — День 11 (Экспорт и поиск) ✅
+
+### 20.1 Экспорт данных в CSV ✅
+
+- [x] `src/lib/export-csv.ts` — `exportMealsCsv(meals)` и `exportWeightCsv(history)`
+  - Клиентская утилита: Blob → `<a>` download, без серверного запроса
+  - BOM (`\uFEFF`) для корректного открытия в Excel
+  - Экранирование запятых и кавычек в полях
+- [x] `src/lib/i18n.ts` — ключи `settings.data`, `settings.export.*`
+- [x] `src/app/settings/SettingsClient.tsx` — раздел «Данные»: кнопки «Экспорт питания» и «Экспорт веса»
+  - Lazy fetch данных при клике (не при загрузке страницы)
+  - Состояния загрузки на кнопках
+
+### 20.2 Поиск по истории блюд ✅
+
+- [x] `src/lib/i18n.ts` — ключи `history.search`, `history.searchEmpty`
+- [x] `src/app/history/HistoryClient.tsx` — поле поиска появляется над списком блюд
+  - Фильтрация по имени блюда и заметкам (case-insensitive)
+  - Иконка Search + крестик очистки (`lucide-react`)
+  - MacroSummary показывает итоги за весь день (не фильтрованные)
+  - Сообщение «Ничего не найдено» при пустом результате
+
+---
+
+## 📅 21. Пошаговый план спринта — День 12 (PWA + тесты) ✅
+
+### 21.1 PWA Service Worker с offline fallback ✅
+
+- [x] `public/sw.js` — сервис-воркер:
+  - На install: прекешируются `/` и `/offline`
+  - Стратегия navigation: network-first → при ошибке возвращает `/offline`
+  - Стратегия assets: cache-first (статика, иконки, JS чанки)
+  - API-роуты (`/api/*`) не перехватываются
+- [x] `src/app/offline/page.tsx` — страница «Нет подключения» с кнопкой «Обновить»
+- [x] `src/app/layout.tsx` — регистрация SW через inline скрипт (event `load`)
+
+### 21.2 Тесты ✅
+
+- [x] `__tests__/export-csv.test.ts` — 10 тестов (триггер скачивания, имя файла, заголовки, данные, экранирование)

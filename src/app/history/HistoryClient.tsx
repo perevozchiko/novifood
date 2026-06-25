@@ -12,7 +12,7 @@
 */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import MealCard from '@/components/MealCard';
 import MacroSummary from '@/components/MacroSummary';
@@ -37,6 +37,7 @@ export default function HistoryClient({ settings }: Props) {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState('');
 
   const fetchMeals = useCallback(async (dateStr: string) => {
     setLoading(true);
@@ -76,7 +77,18 @@ export default function HistoryClient({ settings }: Props) {
   }
 
   const isToday = selectedDate === today;
-  const totalCal = meals.reduce((s, m) => s + (m.calories || 0), 0);
+
+  const filteredMeals = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return meals;
+    return meals.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        (m.notes ?? '').toLowerCase().includes(q),
+    );
+  }, [meals, query]);
+
+  const totalCal = filteredMeals.reduce((s, m) => s + (m.calories || 0), 0);
 
   const displayDate = isToday
     ? t('history.today')
@@ -113,6 +125,32 @@ export default function HistoryClient({ settings }: Props) {
         </button>
       </div>
 
+      {/* Search bar — shown only when there are meals */}
+      {!loading && meals.length > 0 && (
+        <div className="relative mb-4">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
+          />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('history.search')}
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl pl-9 pr-9 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      )}
+
       {loading && (
         <div className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">
           {t('history.loading')}
@@ -128,16 +166,25 @@ export default function HistoryClient({ settings }: Props) {
 
       {!loading && meals.length > 0 && (
         <>
+          {/* MacroSummary always shows totals for the full day, not filtered */}
           <MacroSummary meals={meals} settings={settings} />
 
-          <div className="space-y-3">
-            {meals.map((m) => (
-              <MealCard key={m.id} meal={m} onDelete={handleDelete} onUpdate={handleUpdate} />
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-right mt-3">
-            {t('history.total', totalCal)}
-          </p>
+          {filteredMeals.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm text-center text-gray-400 dark:text-gray-500 text-sm">
+              {t('history.searchEmpty', query)}
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {filteredMeals.map((m) => (
+                  <MealCard key={m.id} meal={m} onDelete={handleDelete} onUpdate={handleUpdate} />
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-right mt-3">
+                {t('history.total', totalCal)}
+              </p>
+            </>
+          )}
         </>
       )}
     </div>
