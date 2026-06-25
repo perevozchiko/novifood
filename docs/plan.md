@@ -426,3 +426,58 @@ v0.1.0 (a3f9c1b)
 
 - Светлая тема → `#ffffff`
 - Тёмная тема → `#1f2937` (соответствует `bg-gray-800` в Tailwind)
+
+---
+
+## 📅 17. Пошаговый план спринта — День 8 (Недельная статистика) ✅
+
+### 17.1 Утилиты для статистики ✅
+
+- [x] `src/lib/meals.ts` — `getMealsByDateRange(from, to)` — загрузка блюд за диапазон дат (server-side)
+- [x] `src/lib/meals.ts` — `getRecentMeals(limit)` — последние N уникальных блюд (client-side)
+- [x] `src/lib/meals.ts` — `computeStreak(dates)` — чистая функция подсчёта серии дней
+- [x] `src/lib/meals.ts` — `getMealDates()` — все дни с записями (server-side, для стрика)
+- [x] `src/lib/i18n.ts` — ключи `stats.*`, `addMeal.recent`, `settings.appearance/*`
+
+### 17.2 Страница статистики `/stats` ✅
+
+- [x] `src/app/stats/page.tsx` — Server Component с PPR + Suspense + skeleton
+- [x] `src/app/stats/StatsClient.tsx`:
+  - SVG bar chart: 7 баров (последние 7 дней), пунктирная линия цели, оранжевый цвет при превышении
+  - Средние КБЖУ за дни с данными
+  - Итого за неделю (калории + Б/Ж/У)
+  - Бейдж серии 🔥 (если streak > 0)
+- [x] `src/app/NavLinks.tsx` — добавлена вкладка 📊 «Статистика / Stats»
+
+---
+
+## 📅 18. Пошаговый план спринта — День 9 (Быстрое добавление) ✅
+
+### 18.1 Чипы недавних блюд в AddMealForm ✅
+
+- [x] `src/components/AddMealForm.tsx` — при открытии формы запрашивает `getRecentMeals(5)` через browser client
+- [x] Чипы-кнопки с именами блюд заполняют форму одним кликом (название + КБЖУ + тип + заметки)
+- [x] Чипы появляются только после открытия формы (lazy fetch)
+
+---
+
+## 📅 19. Пошаговый план спринта — День 10 (Стрик + UX) ✅
+
+### 19.1 Серия дней (streak) на главной странице ✅
+
+- [x] `src/app/page.tsx` — `DiaryDataLoader` дополнительно загружает `getMealDates()` и вычисляет `computeStreak()`
+- [x] `src/app/DiaryClient.tsx` — принимает `streak: number`, показывает 🔥-бейдж при streak ≥ 2
+- [x] Бейдж повторяет дизайн аналогичного блока на странице `/stats`
+
+### 19.2 Перенос настроек внешнего вида ✅
+
+- [x] `src/app/layout.tsx` — убраны `ThemeToggle`, `LangToggle`, версия из мобильного bottom bar
+- [x] `src/app/settings/SettingsClient.tsx` — добавлен раздел «Внешний вид»:
+  - Сегментный переключатель темы (Светлая / Тёмная с иконками Sun/Moon)
+  - Сегментный переключатель языка (RU / EN)
+  - Версия приложения `v0.1.0 (hash)`
+
+### 19.3 Новые unit-тесты ✅
+
+- [x] `__tests__/computeStreak.test.ts` — 8 тестов чистой функции (0 дней, 1 день, серия, разрыв, дубли)
+- [x] `__tests__/StatsClient.test.tsx` — 9 тестов (рендер, нет данных, среднее, итого, стрик)

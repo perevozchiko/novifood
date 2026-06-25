@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-25 (v1.6 — Stats page, quick-add, streak, settings UX)
+
+Added:
+
+- `/stats` page: 7-day SVG calorie bar chart, weekly average КБЖУ, weekly totals, streak badge 🔥
+- `getMealsByDateRange`, `getRecentMeals`, `computeStreak`, `getMealDates` utilities in `meals.ts`
+- NavLinks: 5th tab 📊 Stats / Статистика
+- `AddMealForm`: lazy-loaded recent meal chips — click to fill form from last 5 unique meals
+- Home diary: streak badge (🔥 N дней подряд) shown when streak ≥ 2
+- `SettingsClient`: "Appearance" section with segmented theme/language toggles and version display
+- `__tests__/computeStreak.test.ts` — 8 unit tests for the pure streak function
+- `__tests__/StatsClient.test.tsx` — 9 unit tests for the stats component
+- `src/lib/i18n.ts` — keys for `stats.*`, `addMeal.recent`, `settings.appearance/*`
+
+Fixed:
+
+- Mobile bottom nav overcrowding: removed ThemeToggle, LangToggle, version badge from nav bar
+
 ## 2026-06-25 (v1.5 — Dynamic theme-color + Docs)
 
 Added:

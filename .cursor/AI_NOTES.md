@@ -29,6 +29,7 @@
 | Perf| ✅ Done | cacheComponents (PPR), Suspense streaming, instant tab nav |
 | 7   | ✅ Done | MacroSummary in history, notes field, weight delete, more tests |
 | 8   | ✅ Done | Dynamic theme-color meta tag, plan.md updated (sections 15–16) |
+| 9   | ✅ Done | /stats page (SVG chart, averages, streak), quick-add recent meals, streak on home, settings appearance section, 17 new tests |
 
 ## Performance Fix (2026-06-25)
 
