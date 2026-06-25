@@ -148,6 +148,10 @@ const dictionaries = {
     'settings.export.meals': 'Export meals (CSV)',
     'settings.export.weight': 'Export weight (CSV)',
     'settings.export.loading': 'Preparing…',
+
+    // History search
+    'history.search': 'Search meals…',
+    'history.searchEmpty': 'No meals match "{0}"',
   },
   ru: {
     // Navigation
@@ -286,6 +290,10 @@ const dictionaries = {
     'settings.export.meals': 'Экспорт питания (CSV)',
     'settings.export.weight': 'Экспорт веса (CSV)',
     'settings.export.loading': 'Подготовка…',
+
+    // History search
+    'history.search': 'Поиск по блюдам…',
+    'history.searchEmpty': 'Ничего не найдено по запросу «{0}»',
   },
 } as const;
 
