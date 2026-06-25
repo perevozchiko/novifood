@@ -43,11 +43,18 @@ function DiarySkeleton() {
 async function DiaryDataLoader() {
   await connection();
   const dateStr = new Date().toISOString().slice(0, 10);
+
+  /*
+   * getWaterByDate is caught individually: if the water_intake table does not
+   * yet exist in the database (migration 0002 pending), a Supabase error would
+   * otherwise crash the whole page. An empty array is a safe fallback — the
+   * WaterTracker renders with zero entries and still allows adding water.
+   */
   const [meals, settings, loggedDates, waterEntries] = await Promise.all([
     getMealsByDate(dateStr),
     getSettings(),
     getMealDates(),
-    getWaterByDate(dateStr),
+    getWaterByDate(dateStr).catch(() => [] as Awaited<ReturnType<typeof getWaterByDate>>),
   ]);
   const streak = computeStreak(loggedDates);
   return (
