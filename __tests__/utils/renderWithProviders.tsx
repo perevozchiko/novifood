@@ -11,7 +11,7 @@ import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
-import type { Lang } from '@/lib/i18n';
+import type { Locale as Lang } from '@/lib/i18n';
 
 interface Options {
   lang?: Lang;

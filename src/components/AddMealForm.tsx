@@ -3,26 +3,21 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { Meal, MealType } from '@/types';
-import type { TranslationKey } from '@/lib/i18n';
 import { useT } from '@/providers/LanguageProvider';
 
 /*
   AddMealForm component.
 
-  Manual food entry form. Collects name, meal_type, and КБЖУ values.
-  Calls onAdd with the new entry so the parent can optimistically update the list.
+  Manual food entry form. Collects name, meal_type, КБЖУ values, and
+  an optional notes field. Calls onAdd with the new entry so the parent
+  can optimistically update the list.
 */
+
+const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 interface Props {
   onAdd: (meal: Omit<Meal, 'id' | 'created_at'>) => Promise<void>;
 }
-
-const MEAL_TYPE_KEYS: { value: MealType; labelKey: TranslationKey }[] = [
-  { value: 'breakfast', labelKey: 'meal_breakfast' },
-  { value: 'lunch', labelKey: 'meal_lunch' },
-  { value: 'dinner', labelKey: 'meal_dinner' },
-  { value: 'snack', labelKey: 'meal_snack' },
-];
 
 const EMPTY = {
   name: '',
@@ -35,7 +30,7 @@ const EMPTY = {
 };
 
 export default function AddMealForm({ onAdd }: Props) {
-  const t = useT();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -49,7 +44,7 @@ export default function AddMealForm({ onAdd }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) {
-      setError(t('add_name_error'));
+      setError(t('addMeal.errorName'));
       return;
     }
     setSaving(true);
@@ -68,14 +63,11 @@ export default function AddMealForm({ onAdd }: Props) {
       setForm(EMPTY);
       setOpen(false);
     } catch {
-      setError(t('add_save_error'));
+      setError(t('addMeal.errorCalories'));
     } finally {
       setSaving(false);
     }
   }
-
-  const inputClass =
-    'w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400';
 
   if (!open) {
     return (
@@ -84,49 +76,48 @@ export default function AddMealForm({ onAdd }: Props) {
         className="w-full flex items-center justify-center gap-2 bg-green-600 text-white rounded-2xl py-3 font-medium hover:bg-green-700 active:bg-green-800 transition-colors shadow-sm"
       >
         <Plus size={20} />
-        {t('add_open_btn')}
+        {t('addMeal.button')}
       </button>
     );
   }
 
-  type MacroField = 'calories' | 'protein' | 'fat' | 'carbs';
-  const macroFields: { key: MacroField; labelKey: TranslationKey }[] = [
-    { key: 'calories', labelKey: 'meal_field_kcal' },
-    { key: 'protein', labelKey: 'add_protein_label' },
-    { key: 'fat', labelKey: 'add_fat_label' },
-    { key: 'carbs', labelKey: 'add_carbs_label' },
-  ];
-
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-green-100 dark:border-green-900/40"
+      className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-green-100 dark:border-green-900"
     >
-      <h2 className="font-semibold text-gray-900 dark:text-gray-50 mb-3">{t('add_title')}</h2>
+      <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">{t('addMeal.title')}</h2>
 
       <input
-        className={inputClass + ' mb-3'}
-        placeholder={t('add_name_placeholder')}
+        className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+        placeholder={t('addMeal.namePlaceholder')}
         value={form.name}
         onChange={(e) => setField('name', e.target.value)}
         autoFocus
       />
 
       <select
-        className={inputClass + ' mb-3'}
+        className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100"
         value={form.meal_type}
         onChange={(e) => setField('meal_type', e.target.value as MealType | '')}
       >
-        <option value="">{t('meal_type_placeholder')}</option>
-        {MEAL_TYPE_KEYS.map(({ value, labelKey }) => (
-          <option key={value} value={value}>
-            {t(labelKey)}
+        <option value="">— {t('addMeal.type')} —</option>
+        {MEAL_TYPE_KEYS.map((mt) => (
+          <option key={mt} value={mt}>
+            {t(`addMeal.type.${mt}` as Parameters<typeof t>[0])}
           </option>
         ))}
       </select>
 
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        {macroFields.map(({ key, labelKey }) => (
+      <div className="grid grid-cols-4 gap-2 mb-3">
+        {(
+          [
+            { key: 'calories', labelKey: 'addMeal.calories' },
+            { key: 'protein', labelKey: 'addMeal.protein' },
+            { key: 'fat', labelKey: 'addMeal.fat' },
+            { key: 'carbs', labelKey: 'addMeal.carbs' },
+          ] as const
+        ).map(({ key, labelKey }) => (
           <div key={key}>
             <label className="text-[10px] text-gray-400 dark:text-gray-500 uppercase block mb-1">
               {t(labelKey)}
@@ -134,7 +125,7 @@ export default function AddMealForm({ onAdd }: Props) {
             <input
               type="number"
               min={0}
-              className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100"
               value={form[key]}
               onChange={(e) => setField(key, Number(e.target.value))}
             />
@@ -144,9 +135,9 @@ export default function AddMealForm({ onAdd }: Props) {
 
       {/* Optional notes */}
       <textarea
-        className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg px-3 py-2 text-sm mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-green-400"
+        className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-green-400 placeholder:text-gray-400"
         rows={2}
-        placeholder={t('notes_placeholder')}
+        placeholder={t('meal.notesPlaceholder')}
         value={form.notes}
         onChange={(e) => setField('notes', e.target.value)}
       />
@@ -159,7 +150,7 @@ export default function AddMealForm({ onAdd }: Props) {
           disabled={saving}
           className="flex-1 bg-green-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50 hover:bg-green-700 transition-colors"
         >
-          {saving ? t('meal_saving') : t('add_add')}
+          {saving ? t('addMeal.adding') : t('addMeal.add')}
         </button>
         <button
           type="button"
@@ -168,9 +159,9 @@ export default function AddMealForm({ onAdd }: Props) {
             setForm(EMPTY);
             setError(null);
           }}
-          className="px-4 border border-gray-200 dark:border-gray-700 rounded-lg py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="px-4 border border-gray-200 dark:border-gray-600 rounded-lg py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          {t('meal_cancel')}
+          {t('addMeal.cancel')}
         </button>
       </div>
     </form>

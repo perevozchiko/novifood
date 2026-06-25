@@ -28,8 +28,8 @@ function MacroBar({ label, value, goal, unit, color }: MacroBarProps) {
   return (
     <div>
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-gray-600 dark:text-gray-400">{label}</span>
-        <span className="text-gray-500 dark:text-gray-500">
+        <span className="text-gray-600 dark:text-gray-300">{label}</span>
+        <span className="text-gray-500 dark:text-gray-400">
           {value} / {goal} {unit}
         </span>
       </div>
@@ -44,7 +44,7 @@ function MacroBar({ label, value, goal, unit, color }: MacroBarProps) {
 }
 
 export default function MacroSummary({ meals, settings }: Props) {
-  const t = useT();
+  const { t } = useT();
 
   const totals = meals.reduce(
     (acc, m) => ({
@@ -66,20 +66,12 @@ export default function MacroSummary({ meals, settings }: Props) {
   const dashOffset = circumference - (calPct / 100) * circumference;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mb-6">
       <div className="flex items-center gap-6">
         {/* Calorie ring */}
         <div className="relative shrink-0" style={{ width: 100, height: 100 }}>
           <svg width="100" height="100" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke="currentColor"
-              className="text-gray-100 dark:text-gray-700"
-              strokeWidth="10"
-            />
+            <circle cx="50" cy="50" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="10" />
             <circle
               cx="50"
               cy="50"
@@ -95,38 +87,38 @@ export default function MacroSummary({ meals, settings }: Props) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-lg font-bold text-gray-900 dark:text-gray-50">{totals.calories}</span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">{t('macro_kcal')}</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{totals.calories}</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">{t('macro.calories')}</span>
           </div>
         </div>
 
         {/* Macro bars */}
         <div className="flex-1 space-y-2">
           <MacroBar
-            label={t('macro_protein')}
+            label={t('macro.protein')}
             value={totals.protein}
             goal={settings.protein_goal}
-            unit={t('macro_g')}
+            unit={t('settings.g')}
             color="bg-blue-400"
           />
           <MacroBar
-            label={t('macro_fat')}
+            label={t('macro.fat')}
             value={totals.fat}
             goal={settings.fat_goal}
-            unit={t('macro_g')}
+            unit={t('settings.g')}
             color="bg-yellow-400"
           />
           <MacroBar
-            label={t('macro_carbs')}
+            label={t('macro.carbs')}
             value={totals.carbs}
             goal={settings.carbs_goal}
-            unit={t('macro_g')}
+            unit={t('settings.g')}
             color="bg-orange-400"
           />
         </div>
       </div>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-right">
-        {t('macro_goal')} {settings.calorie_goal} {t('macro_kcal')} · {calPct}{t('macro_done')}
+        {t('macro.goal', settings.calorie_goal)} {t('macro.calories')} · {calPct}%
       </p>
     </div>
   );

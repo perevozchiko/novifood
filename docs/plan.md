@@ -233,13 +233,11 @@ Canvas-утилита: сжимает изображение до 800px по д�
 
 | Файл | Что покрывает |
 |------|--------------|
-| `MacroSummary.test.tsx` | Расчёт суммы калорий, отображение цели, пустое состояние, EN/RU метки |
+| `MacroSummary.test.tsx` | Расчёт суммы калорий, отображение цели, пустое состояние |
 | `MealCard.test.tsx` | Рендер, удаление, инлайн-редактирование, отмена |
 | `AddMealForm.test.tsx` | Открытие формы, валидация, submit, отмена |
-| `PortionSelector.test.tsx` | Рендер кнопок, выделение активной, вызов onChange, EN/RU метка |
+| `PortionSelector.test.tsx` | Рендер кнопок, выделение активной, вызов onChange |
 | `compress-image.test.ts` | Успешное сжатие, ошибка загрузки изображения |
-| `ThemeProvider.test.tsx` | Переключение темы, dark-класс на html, localStorage |
-| `LanguageProvider.test.tsx` | Смена языка, перевод строк, localStorage, ошибка без провайдера |
 
 Запуск:
 ```bash
@@ -339,26 +337,46 @@ v0.1.0 (a3f9c1b)
 
 - [x] `src/lib/i18n.ts` — словари `en` и `ru`, тип `TranslationKey`
 - [x] `src/providers/LanguageProvider.tsx` — React Context + хранение выбора в `localStorage`
-- [x] Хук `useT()` — возвращает функцию перевода по ключу; хук `useLang()` — locale + setLang
-- [x] Кнопка EN / RU в `AppShell` (sidebar + мобильная навигация)
+- [x] Хук `useT()` — возвращает функцию перевода по ключу
+- [x] Кнопка EN / RU в layout рядом с иконкой темы
 - [x] Все строки в компонентах через `useT()` — никаких хардкоженных текстов
-- [x] Дата и числа форматировать через `Intl` с учётом локали (`useLang().locale`)
+- [x] Дата и числа форматировать через `Intl` с учётом локали
 
 ### 13.2 Тёмная / светлая тема ✅
 
 - [x] `src/providers/ThemeProvider.tsx` — класс `dark` на `<html>`, `localStorage`, React Context
-- [x] Кнопка переключения темы в `AppShell` (иконки `Sun` / `Moon` из lucide-react)
-- [x] Все компоненты покрыты `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
-- [x] Мета-тег `theme-color` переключается динамически под светлую/тёмную тему
-- [x] Анти-FOUC инлайн-скрипт в `layout.tsx` — применяет сохранённый класс до гидратации React
+- [x] Кнопка переключения темы в layout (иконки `Sun` / `Moon` из lucide-react)
+- [x] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
+- [x] Anti-FOUC скрипт в `<head>` — читает `localStorage` до первого рендера
 
 ### 13.3 Адаптивный layout (mobile + desktop) ✅
 
 - [x] Мобильный (`< md`): нижняя навигация остаётся как есть
-- [x] Десктопный (`md+`): левая боковая панель навигации, контент `max-w-2xl` по центру
+- [x] Десктопный (`md+`): левая боковая панель навигации (`NavLinks` variant="sidebar")
 - [x] Переключение реализовано через Tailwind responsive-префиксы без JS breakpoint detection
 
 ### 13.4 Версия приложения ✅
 
 - [x] `next.config.ts` — инжекция `NEXT_PUBLIC_APP_VERSION` и `NEXT_PUBLIC_GIT_HASH` при сборке
-- [x] `src/app/layout.tsx` / `AppShell` — бейдж версии в нижней навигации и sidebar
+- [x] `src/app/layout.tsx` — бейдж версии в нижней навигации (абсолютное позиционирование, 8px)
+
+---
+
+## ⚡ 14. Исправление производительности переключения табов ✅
+
+### Причина задержки
+
+Каждый переход по вкладке вызывал полный серверный рендер с запросом к Supabase (`force-dynamic`).
+
+### Решение — Next.js 16 Cache Components + PPR
+
+- [x] `next.config.ts` — `cacheComponents: true` — включает Partial Prerendering
+- [x] Удалён `export const dynamic = 'force-dynamic'` со всех страниц
+- [x] Страницы `/`, `/weight`, `/settings` реструктурированы:
+  - Заголовок рендерится статически (мгновенно при навигации)
+  - Данные загружаются через async компонент + `<Suspense>` с skeleton
+  - `connection()` из `next/server` перед Supabase вызовами (request-time)
+- [x] Страница `/history` — `HistoryClient` обёрнут в `<Suspense>` (дата вычисляется на клиенте)
+- [x] `TodayDate` — Client Component, тоже обёрнут в `<Suspense>` (нет `new Date()` в статическом shell)
+- [x] Скелетоны с `animate-pulse` для визуальной обратной связи во время загрузки
+- [x] React Activity (`cacheComponents`) сохраняет до 3 страниц в памяти — повторная навигация мгновенная

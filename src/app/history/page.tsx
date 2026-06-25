@@ -1,22 +1,46 @@
 /*
   History screen — browse and edit meals for past days.
 
-  Server component: reads today's date and pre-fetches settings so
-  the HistoryClient can render a MacroSummary for the selected day.
-  The page heading is rendered inside HistoryClient so it can use useT().
+  Static heading renders instantly; HistoryContent is wrapped in Suspense
+  so its Supabase fetch is deferred to request time (PPR-compatible).
 */
 
-export const dynamic = 'force-dynamic';
-
+import { Suspense } from 'react';
+import { connection } from 'next/server';
 import { getSettings } from '@/lib/settings';
 import HistoryClient from './HistoryClient';
 
-export default async function HistoryPage() {
-  const today = new Date().toISOString().slice(0, 10);
+function HistorySkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="bg-white rounded-2xl p-3 shadow-sm flex items-center justify-between">
+        <div className="w-9 h-9 bg-gray-100 rounded-lg" />
+        <div className="h-4 bg-gray-100 rounded w-28" />
+        <div className="w-9 h-9 bg-gray-100 rounded-lg" />
+      </div>
+      {[1, 2].map((i) => (
+        <div key={i} className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="h-4 bg-gray-100 rounded w-2/3 mb-2" />
+          <div className="h-3 bg-gray-100 rounded w-1/3" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function HistoryContent() {
+  await connection();
   const settings = await getSettings();
+  return <HistoryClient settings={settings} />;
+}
+
+export default function HistoryPage() {
   return (
     <div className="pt-6">
-      <HistoryClient today={today} settings={settings} />
+      <h1 className="text-2xl font-bold mb-6 dark:text-gray-100">История</h1>
+      <Suspense fallback={<HistorySkeleton />}>
+        <HistoryContent />
+      </Suspense>
     </div>
   );
 }

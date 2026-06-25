@@ -6,19 +6,22 @@
   Fetches meals for the selected day via Supabase browser client,
   allows editing and deleting entries inline, and shows a MacroSummary
   for the selected day.
+
+  Today's date is computed client-side (the component is wrapped in
+  Suspense in the page so new Date() is safe here).
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import MealCard from '@/components/MealCard';
 import MacroSummary from '@/components/MacroSummary';
 import { deleteMeal, updateMeal } from '@/lib/meals';
 import type { Meal, Settings } from '@/types';
-import { useT, useLang } from '@/providers/LanguageProvider';
+import { useT } from '@/providers/LanguageProvider';
+import { formatDate } from '@/lib/i18n';
 
 interface Props {
-  today: string;
   settings: Settings;
 }
 
@@ -28,20 +31,12 @@ function addDays(dateStr: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default function HistoryClient({ today, settings }: Props) {
-  const t = useT();
-  const { locale } = useLang();
-  const [selectedDate, setSelectedDate] = useState(today);
+export default function HistoryClient({ settings }: Props) {
+  const { t, locale } = useT();
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
-
-  function formatDisplay(dateStr: string): string {
-    return new Date(dateStr + 'T12:00:00').toLocaleDateString(locale, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-  }
 
   const fetchMeals = useCallback(async (dateStr: string) => {
     setLoading(true);
@@ -81,24 +76,27 @@ export default function HistoryClient({ today, settings }: Props) {
   }
 
   const isToday = selectedDate === today;
+  const totalCal = meals.reduce((s, m) => s + (m.calories || 0), 0);
+
+  const displayDate = isToday
+    ? t('history.today')
+    : formatDate(locale, selectedDate, { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-50">{t('history_title')}</h1>
-
       {/* Date navigator */}
-      <div className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl p-3 shadow-sm mb-6">
+      <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
-          aria-label={t('history_prev_day')}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          aria-label="Предыдущий день"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={20} className="text-gray-600 dark:text-gray-400" />
         </button>
 
         <div className="text-center">
-          <p className="text-sm font-semibold text-gray-900 dark:text-gray-50 capitalize">
-            {isToday ? t('history_today') : formatDisplay(selectedDate)}
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 capitalize">
+            {displayDate}
           </p>
           {!isToday && (
             <p className="text-xs text-gray-400 dark:text-gray-500">{selectedDate}</p>
@@ -108,29 +106,28 @@ export default function HistoryClient({ today, settings }: Props) {
         <button
           onClick={() => navigate(1)}
           disabled={isToday}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-30 text-gray-700 dark:text-gray-300"
-          aria-label={t('history_next_day')}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30"
+          aria-label="Следующий день"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={20} className="text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       {loading && (
         <div className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">
-          {t('history_loading')}
+          {t('history.loading')}
         </div>
       )}
 
       {!loading && meals.length === 0 && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-sm text-center text-gray-400 dark:text-gray-500">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm text-center text-gray-400 dark:text-gray-500">
           <p className="text-3xl mb-2">📅</p>
-          <p className="text-sm">{t('history_empty')}</p>
+          <p className="text-sm">{t('history.empty')}</p>
         </div>
       )}
 
       {!loading && meals.length > 0 && (
         <>
-          {/* MacroSummary for the selected day */}
           <MacroSummary meals={meals} settings={settings} />
 
           <div className="space-y-3">
@@ -138,6 +135,9 @@ export default function HistoryClient({ today, settings }: Props) {
               <MealCard key={m.id} meal={m} onDelete={handleDelete} onUpdate={handleUpdate} />
             ))}
           </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-right mt-3">
+            {t('history.total', totalCal)}
+          </p>
         </>
       )}
     </div>
