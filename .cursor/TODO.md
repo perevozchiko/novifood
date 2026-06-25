@@ -19,6 +19,18 @@
 - [x] Unit tests: ThemeProvider (6), LanguageProvider (6)
 - [x] All existing unit tests updated to use `renderWithProviders`
 
+## Done (v1.5 improvements)
+
+- [x] `MacroSummary` на странице истории — виджет калорий/БЖУ за выбранный день
+- [x] `history/page.tsx` — предзагрузка `settings` на сервере, `force-dynamic`
+- [x] `deleteWeight(id)` в `src/lib/weight.ts`
+- [x] Кнопка удаления каждой записи в `WeightClient` + оптимистичное обновление списка
+- [x] Поле `notes` в `MealCard` — отображение (курсив, 2 строки) + редактирование в форме
+- [x] Поле `notes` в `AddMealForm` — необязательная textarea
+- [x] Новые i18n-ключи: `notes_label`, `notes_placeholder`, `weight_delete_aria`, `weight_delete_error`
+- [x] Тесты `WeightClient.test.tsx` (7) и `SettingsClient.test.tsx` (7)
+- [x] Итого тестов: 53 / 53 pass
+
 ## Blocked by user action
 
 - [x] Создать Supabase проект ✅

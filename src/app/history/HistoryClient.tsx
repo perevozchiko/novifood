@@ -4,19 +4,22 @@
   HistoryClient — calendar navigation + day view.
 
   Fetches meals for the selected day via Supabase browser client,
-  allows editing and deleting entries inline.
+  allows editing and deleting entries inline, and shows a MacroSummary
+  for the selected day.
 */
 
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import MealCard from '@/components/MealCard';
+import MacroSummary from '@/components/MacroSummary';
 import { deleteMeal, updateMeal } from '@/lib/meals';
-import type { Meal } from '@/types';
+import type { Meal, Settings } from '@/types';
 import { useT, useLang } from '@/providers/LanguageProvider';
 
 interface Props {
   today: string;
+  settings: Settings;
 }
 
 function addDays(dateStr: string, n: number): string {
@@ -25,7 +28,7 @@ function addDays(dateStr: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default function HistoryClient({ today }: Props) {
+export default function HistoryClient({ today, settings }: Props) {
   const t = useT();
   const { locale } = useLang();
   const [selectedDate, setSelectedDate] = useState(today);
@@ -78,7 +81,6 @@ export default function HistoryClient({ today }: Props) {
   }
 
   const isToday = selectedDate === today;
-  const totalCal = meals.reduce((s, m) => s + (m.calories || 0), 0);
 
   return (
     <div>
@@ -128,14 +130,14 @@ export default function HistoryClient({ today }: Props) {
 
       {!loading && meals.length > 0 && (
         <>
+          {/* MacroSummary for the selected day */}
+          <MacroSummary meals={meals} settings={settings} />
+
           <div className="space-y-3">
             {meals.map((m) => (
               <MealCard key={m.id} meal={m} onDelete={handleDelete} onUpdate={handleUpdate} />
             ))}
           </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-right mt-3">
-            {t('history_total')} {totalCal} {t('macro_kcal')}
-          </p>
         </>
       )}
     </div>

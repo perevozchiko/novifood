@@ -112,6 +112,14 @@ const dict = {
     settings_saved: 'Goals saved ✓',
     settings_saving: 'Saving…',
     settings_save: 'Save',
+
+    // Notes field (MealCard / AddMealForm)
+    notes_label: 'Notes',
+    notes_placeholder: 'Optional notes…',
+
+    // Weight delete
+    weight_delete_aria: 'Delete entry',
+    weight_delete_error: 'Failed to delete. Try again.',
   },
   ru: {
     // Navigation
@@ -210,6 +218,14 @@ const dict = {
     settings_saved: 'Цели сохранены ✓',
     settings_saving: 'Сохранение…',
     settings_save: 'Сохранить',
+
+    // Notes field (MealCard / AddMealForm)
+    notes_label: 'Заметки',
+    notes_placeholder: 'Заметка (необязательно)…',
+
+    // Weight delete
+    weight_delete_aria: 'Удалить запись',
+    weight_delete_error: 'Не удалось удалить. Попробуйте снова.',
   },
 } as const;
 

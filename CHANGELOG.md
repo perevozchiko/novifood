@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-25 (v1.5 — UX improvements: history macro, notes, weight delete, more tests)
+
+Added:
+
+- `src/app/history/HistoryClient.tsx` — `MacroSummary` widget now shown for selected day (calories ring + protein/fat/carb bars)
+- `src/app/history/page.tsx` — pre-fetches `settings` and passes to `HistoryClient`; marked `force-dynamic`
+- `src/lib/weight.ts` — `deleteWeight(id)` function
+- `src/app/weight/WeightClient.tsx` — delete button (🗑) on each weight history row; optimistic removal from list
+- `src/components/MealCard.tsx` — notes displayed below macros (italic, 2-line clamp); notes textarea in inline-edit form
+- `src/components/AddMealForm.tsx` — optional notes textarea added to the new-meal form
+- `__tests__/WeightClient.test.tsx` — 7 unit tests: render, add, validation error, delete, optimistic removal
+- `__tests__/SettingsClient.test.tsx` — 7 unit tests: render, labels EN/RU, save, success, error, value change
+
+Changed:
+
+- `src/lib/i18n.ts` — added keys: `notes_label`, `notes_placeholder`, `weight_delete_aria`, `weight_delete_error`
+
 ## 2026-06-25 (v1.4 — Day 6: i18n, dark/light theme, responsive layout)
 
 Added:

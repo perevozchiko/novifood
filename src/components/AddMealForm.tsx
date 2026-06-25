@@ -31,6 +31,7 @@ const EMPTY = {
   protein: 0,
   fat: 0,
   carbs: 0,
+  notes: '',
 };
 
 export default function AddMealForm({ onAdd }: Props) {
@@ -62,7 +63,7 @@ export default function AddMealForm({ onAdd }: Props) {
         fat: form.fat,
         carbs: form.carbs,
         eaten_at: new Date().toISOString(),
-        notes: null,
+        notes: form.notes.trim() || null,
       });
       setForm(EMPTY);
       setOpen(false);
@@ -140,6 +141,15 @@ export default function AddMealForm({ onAdd }: Props) {
           </div>
         ))}
       </div>
+
+      {/* Optional notes */}
+      <textarea
+        className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg px-3 py-2 text-sm mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-green-400"
+        rows={2}
+        placeholder={t('notes_placeholder')}
+        value={form.notes}
+        onChange={(e) => setField('notes', e.target.value)}
+      />
 
       {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
 

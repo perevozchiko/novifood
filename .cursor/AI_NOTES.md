@@ -62,7 +62,9 @@
 | compress-image.test.ts | 2 | Success path, error path |
 | ThemeProvider.test.tsx | 6 | Toggle, dark class, localStorage |
 | LanguageProvider.test.tsx | 6 | Lang switch, translate, localStorage, error |
-| **Total** | **37** | All passing |
+| WeightClient.test.tsx | 7 | Render, add, validate, delete, optimistic removal |
+| SettingsClient.test.tsx | 7 | Render, labels EN/RU, save, success, error, field update |
+| **Total** | **53** | All passing |
 
 ## Version Display
 
