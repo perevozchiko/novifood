@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { Meal, MealType } from '@/types';
+import { getRecentMeals } from '@/lib/meals';
 import { useT } from '@/providers/LanguageProvider';
 
 /*
@@ -35,6 +36,26 @@ export default function AddMealForm({ onAdd }: Props) {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
+
+  /* Fetch recent meals once when the form opens. */
+  useEffect(() => {
+    if (!open) return;
+    getRecentMeals(5).then(setRecentMeals).catch(() => {});
+  }, [open]);
+
+  function applyRecent(meal: Meal) {
+    setForm({
+      name: meal.name,
+      meal_type: meal.meal_type ?? '',
+      calories: meal.calories,
+      protein: meal.protein,
+      fat: meal.fat,
+      carbs: meal.carbs,
+      notes: meal.notes ?? '',
+    });
+    setError(null);
+  }
 
   function setField<K extends keyof typeof EMPTY>(key: K, value: (typeof EMPTY)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -87,6 +108,28 @@ export default function AddMealForm({ onAdd }: Props) {
       className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-green-100 dark:border-green-900"
     >
       <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">{t('addMeal.title')}</h2>
+
+      {/* Recent meal chips — quick-fill from previous entries */}
+      {recentMeals.length > 0 && (
+        <div className="mb-3">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase mb-1.5">
+            {t('addMeal.recent')}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {recentMeals.map((meal) => (
+              <button
+                key={meal.id}
+                type="button"
+                onClick={() => applyRecent(meal)}
+                className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-2.5 py-1 hover:bg-green-100 dark:hover:bg-green-900/40 hover:text-green-700 dark:hover:text-green-400 transition-colors truncate max-w-[120px]"
+                title={`${meal.name} — ${meal.calories} ккал`}
+              >
+                {meal.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <input
         className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
