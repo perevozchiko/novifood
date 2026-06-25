@@ -1,11 +1,24 @@
 /*
   Main diary screen — shows today's meals and macro summary.
 
-  Day 1 placeholder: renders an empty state until the full
-  MacroSummary + AddMealForm components are built on Day 2.
+  Fetches today's meals and settings server-side, passes them to a
+  client-side DiaryClient component that manages optimistic updates.
 */
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+import { getMealsByDate } from '@/lib/meals';
+import { getSettings } from '@/lib/settings';
+import DiaryClient from './DiaryClient';
+
+function todayDateStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default async function HomePage() {
+  const dateStr = todayDateStr();
+  const [meals, settings] = await Promise.all([getMealsByDate(dateStr), getSettings()]);
+
   const today = new Date().toLocaleDateString('ru-RU', {
     weekday: 'long',
     day: 'numeric',
@@ -19,17 +32,7 @@ export default function HomePage() {
         <p className="text-sm text-gray-500 capitalize">{today}</p>
       </header>
 
-      {/* Macro summary placeholder */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm mb-6 text-center text-gray-400">
-        <p className="text-sm">КБЖУ за сегодня появится здесь</p>
-      </div>
-
-      {/* Meals list placeholder */}
-      <div className="bg-white rounded-2xl p-8 shadow-sm text-center text-gray-400">
-        <p className="text-3xl mb-2">🥗</p>
-        <p className="text-sm">Записей за сегодня нет</p>
-        <p className="text-xs mt-1">Добавьте первый приём пищи</p>
-      </div>
+      <DiaryClient initialMeals={meals} settings={settings} />
     </div>
   );
 }

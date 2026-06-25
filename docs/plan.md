@@ -1,9 +1,8 @@
-Этот план выглядит монолитно и полностью готов к реализации. Стек выбран идеально, разделение на клиентский/серверный Supabase учтено, а архитектура базы данных для одного пользователя — максимально лаконичная. Вы с нейросетями проделали отличную работу.
-Чтобы вам было удобно держать весь этот план перед глазами во время разработки (или загрузить его в Cursor / IDE), я объединил весь этот массив данных в один структурированный файл.
-Вы можете скопировать код ниже и сохранить его как PLAN.md в корне вашего будущего проекта.
-# Calorie AI — Спецификация и План Разработки (v1.1)
+# Calorie AI — Спецификация и План Разработки (v1.2)
 
 Этот документ содержит полную архитектуру, структуру, код конфигураций, типов и ключевых утилит для личного трекера калорий. Приложение разрабатывается для ОДНОГО пользователя.
+
+> **Легенда статусов:** ✅ Выполнено · 🔲 Запланировано
 
 ---
 
@@ -11,60 +10,83 @@
 
 | Слой | Технология | Примечание |
 |------|-----------|------------|
-| **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS | Современный каркас с SSR/CSR |
+| **Frontend** | Next.js 16 (App Router), TypeScript, Tailwind CSS | Современный каркас с SSR/CSR |
 | **База данных** | Supabase (Postgres) | Бесплатный тариф (до 500 МБ текста) |
 | **ИИ-модель** | Gemini 2.0 Flash | Самая быстрая мультимодальная модель, бесплатный лимит |
 | **Деплой** | Vercel | Идеальная интеграция с Next.js, поддержка Edge/Serverless |
 | **Иконки** | lucide-react | Набор легковесных SVG иконок |
+| **Unit-тесты** | Vitest + React Testing Library | Тестирование компонентов и утилит |
+| **E2E-тесты** | Playwright | Сквозное тестирование навигации и UI |
 
 ---
 
-## 📂 Структура проекта
+## 📂 Структура проекта ✅
 
 ```text
-calorie-ai/
+novifood/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx                 # Главный экран (Дневник за сегодня)
+│   │   ├── page.tsx                 ✅ Главный экран (Дневник за сегодня)
+│   │   ├── DiaryClient.tsx          ✅ Клиентская оболочка дневника
 │   │   ├── history/
-│   │   │   └── page.tsx             # История по дням (День 4)
+│   │   │   ├── page.tsx             ✅ История по дням
+│   │   │   └── HistoryClient.tsx    ✅ Клиентская навигация по дням
 │   │   ├── weight/
-│   │   │   └── page.tsx             # Контроль веса (День 5)
+│   │   │   ├── page.tsx             ✅ Контроль веса
+│   │   │   └── WeightClient.tsx     ✅ Форма и график веса
 │   │   ├── settings/
-│   │   │   └── page.tsx             # Настройки целей КБЖУ (День 5)
+│   │   │   ├── page.tsx             ✅ Настройки целей КБЖУ
+│   │   │   └── SettingsClient.tsx   ✅ Форма редактирования целей
 │   │   ├── api/
 │   │   │   └── analyze-food/
-│   │   │       └── route.ts         # Защищенный API-эндпоинт для Gemini
-│   │   ├── manifest.ts              # Конфигурация PWA
-│   │   └── layout.tsx               # Общий Layout + навигация
+│   │   │       └── route.ts         ✅ Защищённый API-эндпоинт для Gemini
+│   │   ├── manifest.ts              ✅ Конфигурация PWA
+│   │   └── layout.tsx               ✅ Общий Layout + навигация
 │   │
 │   ├── components/
-│   │   ├── MealCard.tsx             # Карточка отображения блюда
-│   │   ├── MacroSummary.tsx         # Виджет прогресса КБЖУ (кольца/бары)
-│   │   ├── AddMealForm.tsx          # Форма ручного ввода еды
-│   │   ├── CameraUpload.tsx         # Логика фото (захват + сжатие)
-│   │   └── PortionSelector.tsx      # Быстрый множитель порции (0.5x - 2x)
+│   │   ├── MealCard.tsx             ✅ Карточка блюда + инлайн-редактирование
+│   │   ├── MacroSummary.tsx         ✅ Виджет прогресса КБЖУ (кольцо + бары)
+│   │   ├── AddMealForm.tsx          ✅ Форма ручного ввода еды
+│   │   ├── CameraUpload.tsx         ✅ Логика фото (захват + сжатие + ИИ)
+│   │   └── PortionSelector.tsx      ✅ Быстрый множитель порции (0.5x–2x)
 │   │
 │   ├── lib/
-│   │   ├── supabase-browser.ts      # Инициализация Supabase для Client Components
-│   │   ├── supabase-server.ts       # Инициализация Supabase для Server Components
-│   │   ├── meals.ts                 # CRUD операции для приемов пищи
-│   │   ├── settings.ts              # Чтение и обновление личных целей КБЖУ
-│   │   ├── weight.ts                # CRUD операции для веса
-│   │   ├── gemini.ts                # Серверная функция запроса к ИИ
-│   │   └── compress-image.ts        # Клиентское сжатие картинок в Canvas
+│   │   ├── supabase-browser.ts      ✅ Инициализация Supabase для Client Components
+│   │   ├── supabase-server.ts       ✅ Инициализация Supabase для Server Components
+│   │   ├── meals.ts                 ✅ CRUD операции для приёмов пищи
+│   │   ├── settings.ts              ✅ Чтение и обновление целей КБЖУ
+│   │   ├── weight.ts                ✅ CRUD операции для веса
+│   │   ├── gemini.ts                ✅ Серверная функция запроса к ИИ
+│   │   └── compress-image.ts        ✅ Клиентское сжатие картинок в Canvas
 │   │
 │   └── types/
-│       └── index.ts                 # Глобальные типы TypeScript
+│       └── index.ts                 ✅ Глобальные типы TypeScript
+│
+├── __tests__/                       ✅ Unit-тесты (Vitest + RTL)
+│   ├── MacroSummary.test.tsx
+│   ├── MealCard.test.tsx
+│   ├── AddMealForm.test.tsx
+│   ├── PortionSelector.test.tsx
+│   └── compress-image.test.ts
+│
+├── e2e/                             ✅ E2E-тесты (Playwright)
+│   ├── navigation.spec.ts
+│   └── diary.spec.ts
 │
 ├── public/
-│   └── icons/                       # Иконки для PWA (192x192, 512x512)
+│   └── icons/                       ✅ Иконки для PWA (192×192, 512×512)
 │
-├── .env.local                       # Локальные ключи (в .gitignore)
-└── next.config.ts                   # Конфигурация Next.js
+├── vitest.config.mts                ✅ Конфигурация Vitest
+├── playwright.config.ts             ✅ Конфигурация Playwright
+├── .env.local                       🔲 Локальные ключи (в .gitignore)
+└── next.config.ts                   ✅ Конфигурация Next.js
+```
 
+---
 
-🗄 1. База данных — Финальный SQL (Supabase SQL Editor)
+## 🗄 1. База данных — Финальный SQL (Supabase SQL Editor) ✅
+
+```sql
 -- Таблица 1: Приёмы пищи
 create table meals (
   id          uuid primary key default gen_random_uuid(),
@@ -76,10 +98,10 @@ create table meals (
   protein     integer default 0,
   fat         integer default 0,
   carbs       integer default 0,
-  notes       text                   -- Для заметок: "в гостях", "кафе"
+  notes       text
 );
 
--- Таблица 2: Настройки целей (Всегда одна строка с id = 1)
+-- Таблица 2: Настройки целей (всегда одна строка с id = 1)
 create table settings (
   id              integer primary key default 1 check (id = 1),
   calorie_goal    integer default 2200,
@@ -88,8 +110,7 @@ create table settings (
   carbs_goal      integer default 250
 );
 
--- Инициализируем дефолтные настройки при создании БД
-insert into settings (id, calorie_goal, protein_goal, fat_goal, carbs_goal) 
+insert into settings (id, calorie_goal, protein_goal, fat_goal, carbs_goal)
 values (1, 2200, 150, 80, 250)
 on conflict (id) do nothing;
 
@@ -99,16 +120,25 @@ create table weight (
   created_at  timestamptz default now(),
   value       numeric not null
 );
+```
 
+---
 
-🔑 2. Конфигурация Окружения — .env.local
-NEXT_PUBLIC_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+## 🔑 2. Конфигурация окружения — `.env.local` ✅
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 GEMINI_API_KEY=AIzaSy...
+```
 
+> ⚠️ `GEMINI_API_KEY` не имеет префикса `NEXT_PUBLIC_` — ключ доступен только на сервере.
 
-⚠️ Важно: GEMINI_API_KEY не имеет префикса NEXT_PUBLIC_, благодаря чему ключ никогда не утечет в браузер и будет доступен только на сервере Vercel.
-📐 3. Описание типов — src/types/index.ts
+---
+
+## 📐 3. Описание типов — `src/types/index.ts` ✅
+
+```typescript
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export interface Meal {
@@ -145,312 +175,133 @@ export interface FoodAnalysis {
   fat: number;
   carbs: number;
 }
+```
 
+---
 
-🧠 4. Клиенты Supabase — src/lib/
-src/lib/supabase-browser.ts (Клиентский)
-import { createClient } from '@supabase/supabase-js'
+## 🧠 4. Клиенты Supabase — `src/lib/` ✅
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+Реализованы `supabase-browser.ts` (для Client Components) и `supabase-server.ts` (для Server Components).
 
-export const supabaseBrowser = createClient(url, key)
+---
 
+## 💾 5. Сервисы данных — `src/lib/` ✅
 
-src/lib/supabase-server.ts (Серверный)
-import { createClient } from '@supabase/supabase-js'
+- `meals.ts` — полный CRUD: `getMealsByDate`, `addMeal`, `updateMeal`, `deleteMeal`
+- `settings.ts` — `getSettings`, `updateSettings`
+- `weight.ts` — `getWeightHistory`, `addWeight`
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+---
 
-export const supabaseServer = createClient(url, key)
+## 🤖 6. ИИ-логика (сервер) — `src/lib/gemini.ts` ✅
 
+Запрос к Gemini 2.0 Flash с base64-изображением. Ответ парсится как JSON с полями `name`, `calories`, `protein`, `fat`, `carbs`.
 
-💾 5. Сервисы интеграции данных — src/lib/
-Дневник питания — src/lib/meals.ts
-import { supabaseServer } from './supabase-server'
-import { supabaseBrowser } from './supabase-browser'
-import { Meal } from '@/types'
+---
 
-// Выборка за конкретную дату (Серверный компонент)
-export async function getMealsByDate(dateStr: string): Promise<Meal[]> {
-  const from = `${dateStr}T00:00:00.000Z`
-  const to   = `${dateStr}T23:59:59.999Z`
+## 🌐 7. Роутинг и PWA ✅
 
-  const { data, error } = await supabaseServer
-    .from('meals')
-    .select('*')
-    .gte('eaten_at', from)
-    .lte('eaten_at', to)
-    .order('eaten_at', { ascending: true })
+- `POST /api/analyze-food` — защищённый роут, вызывает `analyzeFood()`
+- `src/app/manifest.ts` — PWA-манифест с иконками и `display: standalone`
+- `public/icons/icon-192.png`, `icon-512.png` — иконки PWA
 
-  if (error) throw error
-  return data || []
-}
+---
 
-// Добавление (Клиентский компонент)
-export async function addMeal(meal: Omit<Meal, 'id' | 'created_at'>): Promise<Meal> {
-  const { data, error } = await supabaseBrowser
-    .from('meals')
-    .insert(meal)
-    .select()
-    .single()
+## 📉 8. Клиентское сжатие — `src/lib/compress-image.ts` ✅
 
-  if (error) throw error
-  return data
-}
+Canvas-утилита: сжимает изображение до 800px по длинной стороне, конвертирует в JPEG (качество 80%), возвращает base64 без заголовка.
 
-// Обновление (Клиентский компонент)
-export async function updateMeal(id: string, updates: Partial<Meal>): Promise<Meal> {
-  const { data, error } = await supabaseBrowser
-    .from('meals')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single()
+---
 
-  if (error) throw error
-  return data
-}
+## 🧩 9. Компоненты — `src/components/` ✅
 
-// Удаление (Клиентский компонент)
-export async function deleteMeal(id: string): Promise<void> {
-  const { error } = await supabaseBrowser
-    .from('meals')
-    .delete()
-    .eq('id', id)
+| Компонент | Описание |
+|-----------|----------|
+| `MacroSummary` | Кольцо калорий + прогресс-бары Б/Ж/У |
+| `MealCard` | Карточка блюда с инлайн-редактированием и удалением |
+| `AddMealForm` | Форма ручного ввода (название, тип, КБЖУ) |
+| `CameraUpload` | Захват фото → сжатие → `/api/analyze-food` → `PortionSelector` |
+| `PortionSelector` | Кнопки 0.5x / 0.75x / 1x / 1.5x / 2x |
 
-  if (error) throw error
-}
+---
 
+## 🧪 10. Тестирование ✅
 
-Настройки КБЖУ — src/lib/settings.ts
-import { supabaseServer } from './supabase-server'
-import { supabaseBrowser } from './supabase-browser'
-import { Settings } from '@/types'
+### Unit-тесты (Vitest + React Testing Library)
 
-export async function getSettings(): Promise<Settings> {
-  const { data, error } = await supabaseServer
-    .from('settings')
-    .select('*')
-    .eq('id', 1)
-    .single()
+Файлы в `__tests__/`:
 
-  if (error) throw error
-  return data
-}
+| Файл | Что покрывает |
+|------|--------------|
+| `MacroSummary.test.tsx` | Расчёт суммы калорий, отображение цели, пустое состояние |
+| `MealCard.test.tsx` | Рендер, удаление, инлайн-редактирование, отмена |
+| `AddMealForm.test.tsx` | Открытие формы, валидация, submit, отмена |
+| `PortionSelector.test.tsx` | Рендер кнопок, выделение активной, вызов onChange |
+| `compress-image.test.ts` | Успешное сжатие, ошибка загрузки изображения |
 
-export async function updateSettings(updates: Partial<Settings>): Promise<Settings> {
-  const { data, error } = await supabaseBrowser
-    .from('settings')
-    .update(updates)
-    .eq('id', 1)
-    .select()
-    .single()
+Запуск:
+```bash
+npm test              # однократный прогон
+npm run test:watch    # режим watch
+```
 
-  if (error) throw error
-  return data
-}
+### E2E-тесты (Playwright)
 
+Файлы в `e2e/`:
 
-Учет Веса — src/lib/weight.ts
-import { supabaseServer } from './supabase-server'
-import { supabaseBrowser } from './supabase-browser'
-import { Weight } from '@/types'
+| Файл | Что покрывает |
+|------|--------------|
+| `navigation.spec.ts` | Переход по всем 4 страницам через нижнюю навигацию |
+| `diary.spec.ts` | Кнопка добавления блюда, форма, камера, отмена |
 
-export async function getWeightHistory(): Promise<Weight[]> {
-  const { data, error } = await supabaseServer
-    .from('weight')
-    .select('*')
-    .order('created_at', { ascending: true })
+Запуск:
+```bash
+npm run test:e2e
+```
 
-  if (error) throw error
-  return data || []
-}
+> E2E-тесты автоматически поднимают `next dev` через `webServer` в `playwright.config.ts`. Для полного прохождения тестов, требующих данных, нужна рабочая `.env.local`.
 
-export async function addWeight(value: number): Promise<Weight> {
-  const { data, error } = await supabaseBrowser
-    .from('weight')
-    .insert({ value })
-    .select()
-    .single()
+---
 
-  if (error) throw error
-  return data
-}
+## 📅 11. Пошаговый план спринта (5 дней)
 
+### День 1: Инфраструктурный фундамент ✅
 
-🤖 6. ИИ Логика (Сервер) — src/lib/gemini.ts
-import { FoodAnalysis } from '@/types'
+- [x] Инициализация Next.js 16 + TypeScript + Tailwind CSS + App Router
+- [x] Зависимости: `@supabase/supabase-js`, `lucide-react`
+- [x] SQL-таблицы в Supabase: `meals`, `settings`, `weight`
+- [x] Файлы конфигурации `.env.local.example`, `src/lib/`
+- [x] Базовый Layout с нижней навигацией (4 пункта)
+- [x] Страницы-заглушки: `/`, `/history`, `/weight`, `/settings`
+- [x] Миграция `supabase/migrations/0001_init.sql` применена к remote
 
-const MODEL = 'gemini-2.0-flash'
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
+### День 2: Ядро бизнес-логики (ручной учёт) ✅
 
-export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) throw new Error('GEMINI_API_KEY is missing in environment variables')
+- [x] Компонент `MacroSummary.tsx` — кольцо калорий + прогресс-бары
+- [x] Компонент `AddMealForm.tsx` — форма: название, КБЖУ, тип, валидация
+- [x] Компонент `MealCard.tsx` — отображение блюда
+- [x] `page.tsx` — Server Component, передаёт данные в `DiaryClient`
+- [x] `DiaryClient.tsx` — управление состоянием списка блюд
 
-  const response = await fetch(`${API_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          {
-            inline_data: {
-              mime_type: 'image/jpeg',
-              data: base64Image
-            }
-          },
-          {
-            text: `Analyse the food in this photo. 
-Respond ONLY with a valid JSON object. Do not include markdown codeblocks, wrapping, or explanations. 
-Structure:
-{"name":"Dish Name in Russian","calories":0,"protein":0,"fat":0,"carbs":0}
-All macro values must be integers representing the full portion visible in the photo. 
-Calories in kcal, protein/fat/carbs in grams.`
-          }
-        ]
-      }]
-    })
-  })
+### День 3: Интеграция с ИИ ✅
 
-  if (!response.ok) {
-    const errText = await response.text()
-    throw new Error(`Gemini API error: ${response.status} - ${errText}`)
-  }
+- [x] Утилита `compress-image.ts`
+- [x] Компонент `CameraUpload.tsx` — `<input capture="environment">` + Gemini
+- [x] Компонент `PortionSelector.tsx` — множитель порции
+- [x] Сквозной сценарий: Камера → Сжатие → API → Gemini → JSON → Дневник
 
-  const result = await response.json()
-  const text = result.candidates[0].content.parts[0].text
-  
-  // Очистка от возможных markdown-тегов ИИ на всякий случай
-  const cleanJson = text.replace(/```json|```/g, '').trim()
-  return JSON.parse(cleanJson)
-}
+### День 4: Редактирование и История ✅
 
+- [x] `MealCard.tsx` — инлайн-редактирование всех полей
+- [x] Страница `/history` — навигация по датам, список блюд, редактирование
 
-🌐 7. Роутинг и Окружение PWA
-API Роут — src/app/api/analyze-food/route.ts
-import { analyzeFood } from '@/lib/gemini'
-import { NextRequest, NextResponse } from 'next/server'
+### День 5: Мониторинг веса, настройки, PWA ✅
 
-export const maxDuration = 30 // Увеличиваем таймаут для Vercel (обработка фото)
+- [x] Страница `/weight` — форма добавления + sparkline-график + история
+- [x] Страница `/settings` — форма редактирования целей КБЖУ
+- [x] Иконки PWA `public/icons/icon-192.png`, `icon-512.png`
 
-export async function POST(req: NextRequest) {
-  try {
-    const { image } = await req.json()
+### Тестирование ✅
 
-    if (!image) {
-      return NextResponse.json({ error: 'No image provided' }, { status: 400 })
-    }
-
-    const result = await analyzeFood(image)
-    return NextResponse.json(result)
-
-  } catch (error: any) {
-    console.error('analyze-food error:', error)
-    return NextResponse.json({ error: error.message || 'Failed to analyze image' }, { status: 500 })
-  }
-}
-
-
-Манифест PWA — src/app/manifest.ts
-import { MetadataRoute } from 'next'
-
-export default function manifest(): MetadataRoute.Manifest {
-  return {
-    name: 'Calorie AI Tracker',
-    short_name: 'CalorieAI',
-    description: 'Личный трекер питания и веса с ИИ-распознаванием еды',
-    start_url: '/',
-    display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#16a34a', // Тёмно-зеленый Tailwind (emerald-600)
-    icons: [
-      {
-        src: '/icons/icon-192.png',
-        sizes: '192x192',
-        type: 'image/png'
-      },
-      {
-        src: '/icons/icon-512.png',
-        sizes: '512x512',
-        type: 'image/png'
-      }
-    ]
-  }
-}
-
-
-📉 8. Браузерная утилита сжатия — src/lib/compress-image.ts
-export async function compressImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-
-    img.onload = () => {
-      const MAX_SIDE = 800 // Оптимально для Gemini
-      let { width, height } = img
-
-      if (width > height && width > MAX_SIDE) {
-        height = (height * MAX_SIDE) / width
-        width = MAX_SIDE
-      } else if (height > MAX_SIDE) {
-        width = (width * MAX_SIDE) / height
-        height = MAX_SIDE
-      }
-
-      const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        reject(new Error('Failed to get canvas context'))
-        return
-      }
-
-      ctx.drawImage(img, 0, 0, width, height)
-
-      // Конвертируем в JPEG с качеством 80%
-      const base64 = canvas.toDataURL('image/jpeg', 0.8)
-      
-      // Отсекаем заголовок "data:image/jpeg;base64,"
-      const rawBase64 = base64.split(',')[1]
-      
-      resolve(rawBase64)
-      URL.revokeObjectURL(url)
-    }
-
-    img.onerror = () => reject(new Error('Failed to load image'))
-    img.src = url
-  })
-}
-
-
-📅 9. Пошаговый план спринта (5 дней)
-День 1: Инфраструктурный фундамент
-Инициализация Next.js: npx create-next-app@latest calorie-ai --ts --tailwind --app --src-dir --eslint
-Зависимости: npm install @supabase/supabase-js lucide-react
-Накат SQL таблиц и инициализация дефолтной строки настроек в дашборде Supabase.
-Создание файлов конфигурации .env.local и папки src/lib/.
-Настройка главной страницы src/app/page.tsx на чтение пустых данных. Первая проверка деплоя на Vercel.
-День 2: Ядро бизнес-логики (Ручной учет)
-Создание компонента MacroSummary.tsx для отображения прогресса дня.
-Создание формы AddMealForm.tsx (Название, КБЖУ, выбор meal_type и времени).
-Реализация функций addMeal и deleteMeal для мгновенного обновления интерфейса.
-День 3: Интеграция с ИИ интеллектом
-Добавление утилиты compress-image.ts.
-Создание компонента CameraUpload.tsx с использованием нативного тега <input type="file" accept="image/*" capture="environment" />.
-Тестирование сквозного сценария: Камера телефона ➔ Сжатие ➔ API-route ➔ Gemini ➔ Возврат JSON на экран.
-Добавление PortionSelector.tsx для коррекции веса полученного блюда.
-День 4: Редактирование записей и Архивы
-Модификация карточки MealCard.tsx: добавление инлайнового редактирования полей.
-Реализация страницы /history с календарем для просмотра прошлых дней.
-День 5: Мониторинг веса и финализация PWA
-Верстка экрана /weight для фиксации веса и просмотра динамики.
-Создание страницы /settings для изменения глобальных целей КБЖУ.
-Генерация иконки PWA, проверка работы приложения в режиме "Добавить на экран домой" на мобильном устройстве.
-Когда будете готовы начать разработку первого дня — пишите, создадим проект и начнем разворачивать код по цепочке!
-
-
+- [x] Vitest + React Testing Library: 4 компонента + 1 утилита
+- [x] Playwright: навигация + основные сценарии дневника

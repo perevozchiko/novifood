@@ -1,16 +1,21 @@
 /*
   Weight tracking screen.
-  Full implementation: Day 5.
+
+  Server component: pre-fetches weight history and passes it to a
+  client component for interactive display and entry.
 */
 
-export default function WeightPage() {
+export const dynamic = 'force-dynamic';
+
+import { getWeightHistory } from '@/lib/weight';
+import WeightClient from './WeightClient';
+
+export default async function WeightPage() {
+  const history = await getWeightHistory();
   return (
     <div className="pt-6">
-      <h1 className="text-2xl font-bold mb-4">Вес</h1>
-      <div className="bg-white rounded-2xl p-8 shadow-sm text-center text-gray-400">
-        <p className="text-3xl mb-2">⚖️</p>
-        <p className="text-sm">Учёт веса появится на 5-й день разработки</p>
-      </div>
+      <h1 className="text-2xl font-bold mb-6">Вес</h1>
+      <WeightClient initialHistory={history} />
     </div>
   );
 }
