@@ -48,6 +48,12 @@ Fix:
 - Dictionaries: `src/lib/i18n.ts` — all UI strings covered
 - Hook: `useT()` from `src/providers/LanguageProvider.tsx`
 
+## E2E Testing (2026-06-25)
+
+- E2E tests use the default English locale — no pre-seeded `localStorage`
+- Playwright specs in `e2e/` test navigation smoke suite and diary interactions
+- Sidebar nav used on desktop (`md+`), bottom nav on mobile
+
 ## Dark Theme (2026-06-25)
 
 - Tailwind v4 class strategy: `@custom-variant dark (&:where(.dark, .dark *))`

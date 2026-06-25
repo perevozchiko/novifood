@@ -73,6 +73,7 @@ const dictionaries = {
     'camera.retry': 'Try again',
     'camera.cancel': 'Cancel',
     'camera.errorAnalysis': 'Failed to analyse photo. Please try again.',
+    'camera.errorQuota': 'AI limit reached. Try again in a few minutes.',
     'camera.errorSave': 'Failed to save.',
     'camera.portion': 'Portion',
 
@@ -174,6 +175,7 @@ const dictionaries = {
     'camera.retry': 'Попробовать снова',
     'camera.cancel': 'Отмена',
     'camera.errorAnalysis': 'Не удалось проанализировать фото. Попробуйте ещё раз.',
+    'camera.errorQuota': 'Лимит ИИ исчерпан. Попробуйте через несколько минут.',
     'camera.errorSave': 'Не удалось сохранить.',
     'camera.portion': 'Порция',
 
