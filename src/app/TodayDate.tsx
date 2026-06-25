@@ -13,5 +13,5 @@ export default function TodayDate() {
     day: 'numeric',
     month: 'long',
   });
-  return <p className="text-sm text-gray-500 capitalize">{today}</p>;
+  return <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{today}</p>;
 }

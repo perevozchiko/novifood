@@ -29,7 +29,7 @@ function HistorySkeleton() {
 export default function HistoryPage() {
   return (
     <div className="pt-6">
-      <h1 className="text-2xl font-bold mb-6">История</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-gray-100">История</h1>
       <Suspense fallback={<HistorySkeleton />}>
         <HistoryClient />
       </Suspense>

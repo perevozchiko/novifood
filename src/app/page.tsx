@@ -50,7 +50,7 @@ export default function HomePage() {
   return (
     <div className="pt-6">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-green-700">NoviFood</h1>
+        <h1 className="text-2xl font-bold text-green-700 dark:text-green-400">NoviFood</h1>
         <Suspense fallback={<p className="text-sm text-gray-500 h-4" />}>
           <TodayDate />
         </Suspense>

@@ -38,7 +38,7 @@ async function WeightDataLoader() {
 export default function WeightPage() {
   return (
     <div className="pt-6">
-      <h1 className="text-2xl font-bold mb-6">Вес</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-gray-100">Вес</h1>
       <Suspense fallback={<WeightSkeleton />}>
         <WeightDataLoader />
       </Suspense>

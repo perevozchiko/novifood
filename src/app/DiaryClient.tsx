@@ -15,6 +15,7 @@ import AddMealForm from '@/components/AddMealForm';
 import CameraUpload from '@/components/CameraUpload';
 import { addMeal, deleteMeal, updateMeal } from '@/lib/meals';
 import type { Meal, Settings } from '@/types';
+import { useT } from '@/providers/LanguageProvider';
 
 interface Props {
   initialMeals: Meal[];
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function DiaryClient({ initialMeals, settings }: Props) {
+  const { t } = useT();
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
 
   async function handleAdd(mealData: Omit<Meal, 'id' | 'created_at'>) {
@@ -45,10 +47,10 @@ export default function DiaryClient({ initialMeals, settings }: Props) {
 
       <div className="space-y-3 mb-6">
         {meals.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 shadow-sm text-center text-gray-400">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm text-center text-gray-400 dark:text-gray-500">
             <p className="text-3xl mb-2">🥗</p>
-            <p className="text-sm">Записей за сегодня нет</p>
-            <p className="text-xs mt-1">Добавьте первый приём пищи</p>
+            <p className="text-sm">{t('diary.empty')}</p>
+            <p className="text-xs mt-1">{t('diary.emptyHint')}</p>
           </div>
         ) : (
           meals.map((m) => (

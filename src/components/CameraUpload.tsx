@@ -5,6 +5,7 @@ import { Camera, Loader2 } from 'lucide-react';
 import { compressImage } from '@/lib/compress-image';
 import PortionSelector from './PortionSelector';
 import type { FoodAnalysis, Meal, MealType } from '@/types';
+import { useT } from '@/providers/LanguageProvider';
 
 /*
   CameraUpload component.
@@ -14,18 +15,14 @@ import type { FoodAnalysis, Meal, MealType } from '@/types';
   so the user can adjust the serving before confirming.
 */
 
-const MEAL_TYPES: { value: MealType; label: string }[] = [
-  { value: 'breakfast', label: 'Завтрак' },
-  { value: 'lunch', label: 'Обед' },
-  { value: 'dinner', label: 'Ужин' },
-  { value: 'snack', label: 'Перекус' },
-];
+const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 interface Props {
   onConfirm: (meal: Omit<Meal, 'id' | 'created_at'>) => Promise<void>;
 }
 
 export default function CameraUpload({ onConfirm }: Props) {
+  const { t } = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'idle' | 'analysing' | 'review' | 'saving'>('idle');
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(null);
@@ -52,17 +49,16 @@ export default function CameraUpload({ onConfirm }: Props) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Ошибка сервера ${res.status}`);
+        throw new Error(data.error || `Server error ${res.status}`);
       }
 
       const data: FoodAnalysis = await res.json();
       setAnalysis(data);
       setStatus('review');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      setError(err instanceof Error ? err.message : t('camera.errorAnalysis'));
       setStatus('idle');
     } finally {
-      // Reset input so the same file can be picked again
       if (inputRef.current) inputRef.current.value = '';
     }
   }
@@ -86,7 +82,7 @@ export default function CameraUpload({ onConfirm }: Props) {
       setPortion(1);
       setMealType('');
     } catch {
-      setError('Не удалось сохранить. Попробуйте снова.');
+      setError(t('camera.errorSave'));
       setStatus('review');
     }
   }
@@ -101,7 +97,6 @@ export default function CameraUpload({ onConfirm }: Props) {
 
   return (
     <div>
-      {/* Hidden file input — native camera on mobile */}
       <input
         ref={inputRef}
         type="file"
@@ -115,17 +110,17 @@ export default function CameraUpload({ onConfirm }: Props) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-green-300 text-green-700 rounded-2xl py-3 text-sm font-medium hover:bg-green-50 transition-colors"
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 rounded-2xl py-3 text-sm font-medium hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
         >
           <Camera size={18} />
-          Сфотографировать блюдо
+          {t('camera.button')}
         </button>
       )}
 
       {status === 'analysing' && (
-        <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-500">
+        <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-500 dark:text-gray-400">
           <Loader2 size={18} className="animate-spin" />
-          Анализирую фото…
+          {t('camera.analysing')}
         </div>
       )}
 
@@ -134,20 +129,22 @@ export default function CameraUpload({ onConfirm }: Props) {
       )}
 
       {(status === 'review' || status === 'saving') && analysis && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100 mt-2">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-green-100 dark:border-green-900 mt-2">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 text-sm truncate pr-2">{analysis.name}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate pr-2">
+              {analysis.name}
+            </h3>
             <button
               onClick={handleReset}
-              className="text-xs text-gray-400 hover:text-gray-600 shrink-0"
+              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0"
             >
-              Сбросить
+              {t('camera.retry')}
             </button>
           </div>
 
-          <div className="flex gap-3 text-xs text-gray-500 mb-4">
-            <span className="font-semibold text-gray-900">
-              {Math.round(analysis.calories * portion)} ккал
+          <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
+              {Math.round(analysis.calories * portion)} {t('macro.calories')}
             </span>
             <span>Б {Math.round(analysis.protein * portion)}г</span>
             <span>Ж {Math.round(analysis.fat * portion)}г</span>
@@ -159,14 +156,14 @@ export default function CameraUpload({ onConfirm }: Props) {
           </div>
 
           <select
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100"
             value={mealType}
             onChange={(e) => setMealType(e.target.value as MealType | '')}
           >
-            <option value="">— Тип приёма пищи —</option>
-            {MEAL_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            <option value="">— {t('addMeal.type')} —</option>
+            {MEAL_TYPE_KEYS.map((mt) => (
+              <option key={mt} value={mt}>
+                {t(`addMeal.type.${mt}` as Parameters<typeof t>[0])}
               </option>
             ))}
           </select>
@@ -176,7 +173,7 @@ export default function CameraUpload({ onConfirm }: Props) {
             disabled={status === 'saving'}
             className="w-full bg-green-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50 hover:bg-green-700 transition-colors"
           >
-            {status === 'saving' ? 'Сохранение…' : 'Добавить в дневник'}
+            {status === 'saving' ? t('camera.confirmAdding') : t('camera.confirm')}
           </button>
         </div>
       )}
