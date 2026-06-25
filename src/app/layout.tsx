@@ -20,12 +20,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ru" className={`${geist.variable} h-full antialiased`}>
       {/*
         Inline script prevents flash of wrong theme by applying .dark class
-        before the first paint. Runs synchronously before any React hydration.
+        and setting theme-color meta before the first paint.
+        Runs synchronously before any React hydration.
       */}
       <head>
+        <meta name="theme-color" content="#ffffff" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}})();`,
+            __html: `(function(){var t=localStorage.getItem('theme');var dark=t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#1f2937');}})();`,
           }}
         />
       </head>
