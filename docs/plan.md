@@ -333,29 +333,50 @@ v0.1.0 (a3f9c1b)
 
 > День 6 охватывает возможности, запланированные в `.cursor/TODO.md` и `DECISIONS.md`.
 
-### 13.1 Интернационализация (i18n) 🔲
+### 13.1 Интернационализация (i18n) ✅
 
-- [ ] `src/lib/i18n.ts` — словари `en` и `ru`, тип `TranslationKey`
-- [ ] `src/providers/LanguageProvider.tsx` — React Context + хранение выбора в `localStorage`
-- [ ] Хук `useT()` — возвращает функцию перевода по ключу
-- [ ] Кнопка EN / RU в layout рядом с иконкой темы
-- [ ] Все строки в компонентах через `useT()` — никаких хардкоженных текстов
-- [ ] Дата и числа форматировать через `Intl` с учётом локали
+- [x] `src/lib/i18n.ts` — словари `en` и `ru`, тип `TranslationKey`
+- [x] `src/providers/LanguageProvider.tsx` — React Context + хранение выбора в `localStorage`
+- [x] Хук `useT()` — возвращает функцию перевода по ключу
+- [x] Кнопка EN / RU в layout рядом с иконкой темы
+- [x] Все строки в компонентах через `useT()` — никаких хардкоженных текстов
+- [x] Дата и числа форматировать через `Intl` с учётом локали
 
-### 13.2 Тёмная / светлая тема 🔲
+### 13.2 Тёмная / светлая тема ✅
 
-- [ ] `src/providers/ThemeProvider.tsx` — класс `dark` на `<html>`, `localStorage`, React Context
-- [ ] Кнопка переключения темы в layout (иконки `Sun` / `Moon` из lucide-react)
-- [ ] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
-- [ ] Мета-тег `theme-color` переключается динамически под светлую/тёмную тему
+- [x] `src/providers/ThemeProvider.tsx` — класс `dark` на `<html>`, `localStorage`, React Context
+- [x] Кнопка переключения темы в layout (иконки `Sun` / `Moon` из lucide-react)
+- [x] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
+- [x] Anti-FOUC скрипт в `<head>` — читает `localStorage` до первого рендера
 
-### 13.3 Адаптивный layout (mobile + desktop) 🔲
+### 13.3 Адаптивный layout (mobile + desktop) ✅
 
-- [ ] Мобильный (`< md`): нижняя навигация остаётся как есть
-- [ ] Десктопный (`md+`): левая боковая панель навигации, контент `max-w-2xl` по центру
-- [ ] Переключение реализовано через Tailwind responsive-префиксы без JS breakpoint detection
+- [x] Мобильный (`< md`): нижняя навигация остаётся как есть
+- [x] Десктопный (`md+`): левая боковая панель навигации (`NavLinks` variant="sidebar")
+- [x] Переключение реализовано через Tailwind responsive-префиксы без JS breakpoint detection
 
 ### 13.4 Версия приложения ✅
 
 - [x] `next.config.ts` — инжекция `NEXT_PUBLIC_APP_VERSION` и `NEXT_PUBLIC_GIT_HASH` при сборке
 - [x] `src/app/layout.tsx` — бейдж версии в нижней навигации (абсолютное позиционирование, 8px)
+
+---
+
+## ⚡ 14. Исправление производительности переключения табов ✅
+
+### Причина задержки
+
+Каждый переход по вкладке вызывал полный серверный рендер с запросом к Supabase (`force-dynamic`).
+
+### Решение — Next.js 16 Cache Components + PPR
+
+- [x] `next.config.ts` — `cacheComponents: true` — включает Partial Prerendering
+- [x] Удалён `export const dynamic = 'force-dynamic'` со всех страниц
+- [x] Страницы `/`, `/weight`, `/settings` реструктурированы:
+  - Заголовок рендерится статически (мгновенно при навигации)
+  - Данные загружаются через async компонент + `<Suspense>` с skeleton
+  - `connection()` из `next/server` перед Supabase вызовами (request-time)
+- [x] Страница `/history` — `HistoryClient` обёрнут в `<Suspense>` (дата вычисляется на клиенте)
+- [x] `TodayDate` — Client Component, тоже обёрнут в `<Suspense>` (нет `new Date()` в статическом shell)
+- [x] Скелетоны с `animate-pulse` для визуальной обратной связи во время загрузки
+- [x] React Activity (`cacheComponents`) сохраняет до 3 страниц в памяти — повторная навигация мгновенная
