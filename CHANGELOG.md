@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-25 (v1.8 — Bug fixes + Water intake tracking)
+
+Fixed:
+
+- `meal.edit` i18n key in English dictionary was showing Russian text (`'Редактировать'` → `'Edit'`)
+- `aria-label` on history navigation buttons hardcoded in Russian — moved to `history.prevDay` / `history.nextDay` i18n keys
+- Unit labels (`г`) in `StatsClient` averages and totals were hardcoded Russian — now use `t('settings.g')`
+- `offline/page.tsx` had no i18n support — rewritten to use `useT()` with new `offline.*` keys
+
+Added:
+
+- `supabase/migrations/0002_water_intake.sql` — `water_intake` table + `water_goal_ml` column in `settings` (default 2000 ml)
+- `src/types/index.ts` — `WaterIntake` type; `water_goal_ml` field in `Settings`
+- `src/lib/water-intake.ts` — `getWaterByDate` (server), `addWaterIntake`, `deleteWaterIntake` (client)
+- `src/components/WaterTracker.tsx` — daily water intake widget: progress bar, +150/+250/+500 ml quick-add, per-entry delete, goal-reached green indicator
+- `src/app/settings/SettingsClient.tsx` — «Daily water goal (ml)» field added to macro goals form
+- `__tests__/WaterTracker.test.tsx` — 8 unit tests
+
 ## 2026-06-25 (v1.7 — CSV export, history search, PWA offline)
 
 Added:

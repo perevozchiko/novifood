@@ -13,17 +13,19 @@ import MacroSummary from '@/components/MacroSummary';
 import MealCard from '@/components/MealCard';
 import AddMealForm from '@/components/AddMealForm';
 import CameraUpload from '@/components/CameraUpload';
+import WaterTracker from '@/components/WaterTracker';
 import { addMeal, deleteMeal, updateMeal } from '@/lib/meals';
-import type { Meal, Settings } from '@/types';
+import type { Meal, Settings, WaterIntake } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 
 interface Props {
   initialMeals: Meal[];
   settings: Settings;
   streak: number;
+  initialWater: WaterIntake[];
 }
 
-export default function DiaryClient({ initialMeals, settings, streak }: Props) {
+export default function DiaryClient({ initialMeals, settings, streak, initialWater }: Props) {
   const { t } = useT();
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
 
@@ -75,7 +77,9 @@ export default function DiaryClient({ initialMeals, settings, streak }: Props) {
         )}
       </div>
 
-      <div className="space-y-3">
+      <WaterTracker initialEntries={initialWater} goalMl={settings.water_goal_ml} />
+
+      <div className="space-y-3 mt-6">
         <CameraUpload onConfirm={handleAdd} />
         <AddMealForm onAdd={handleAdd} />
       </div>

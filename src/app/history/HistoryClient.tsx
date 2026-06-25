@@ -101,7 +101,7 @@ export default function HistoryClient({ settings }: Props) {
         <button
           onClick={() => navigate(-1)}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Предыдущий день"
+          aria-label={t('history.prevDay')}
         >
           <ChevronLeft size={20} className="text-gray-600 dark:text-gray-400" />
         </button>
@@ -119,7 +119,7 @@ export default function HistoryClient({ settings }: Props) {
           onClick={() => navigate(1)}
           disabled={isToday}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30"
-          aria-label="Следующий день"
+          aria-label={t('history.nextDay')}
         >
           <ChevronRight size={20} className="text-gray-600 dark:text-gray-400" />
         </button>
