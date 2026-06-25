@@ -1,68 +1,58 @@
 'use client';
 
 /*
-  LanguageProvider — global language context.
+  LanguageProvider — stores the selected locale in localStorage and
+  exposes it via React Context.
 
-  Stores the user's language choice in localStorage under key 'lang'.
-  Falls back to 'en' when no stored preference exists.
-  Exposes useT() for translation and useLang() for reading/setting the locale.
+  Default locale: 'ru' (matches the existing UI language).
+  Falls back to 'ru' if localStorage is unavailable.
 */
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import type { Lang, TranslationKey } from '@/lib/i18n';
-import { getLocale, getTranslations } from '@/lib/i18n';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { Locale } from '@/lib/i18n';
+import { translate, type TranslationKey } from '@/lib/i18n';
+
+const STORAGE_KEY = 'lang';
 
 interface LanguageContextValue {
-  lang: Lang;
-  locale: string;
-  setLang: (lang: Lang) => void;
-  t: (key: TranslationKey) => string;
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  t: (key: TranslationKey, ...args: (string | number)[]) => string;
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+const LanguageContext = createContext<LanguageContextValue>({
+  locale: 'ru',
+  setLocale: () => {},
+  t: (key) => key,
+});
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('en');
+  const [locale, setLocaleState] = useState<Locale>('ru');
 
   useEffect(() => {
-    const stored = localStorage.getItem('lang');
+    const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (stored === 'en' || stored === 'ru') {
-      setLangState(stored);
+      setLocaleState(stored);
     }
   }, []);
 
-  function setLang(newLang: Lang) {
-    setLangState(newLang);
-    localStorage.setItem('lang', newLang);
+  function setLocale(next: Locale) {
+    setLocaleState(next);
+    localStorage.setItem(STORAGE_KEY, next);
   }
 
-  const t = useCallback(
-    (key: TranslationKey): string => getTranslations(lang)[key],
-    [lang],
-  );
+  function t(key: TranslationKey, ...args: (string | number)[]): string {
+    return translate(locale, key, ...args);
+  }
 
   return (
-    <LanguageContext.Provider value={{ lang, locale: getLocale(lang), setLang, t }}>
+    <LanguageContext.Provider value={{ locale, setLocale, t }}>
       {children}
     </LanguageContext.Provider>
   );
 }
 
-/*
-  Returns the translation function for the current language.
-  Must be used inside a component tree wrapped with LanguageProvider.
-*/
-export function useT(): (key: TranslationKey) => string {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error('useT must be used within LanguageProvider');
-  return ctx.t;
-}
-
-/*
-  Returns the current language code, locale tag, and a setter function.
-*/
-export function useLang(): { lang: Lang; locale: string; setLang: (l: Lang) => void } {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error('useLang must be used within LanguageProvider');
-  return { lang: ctx.lang, locale: ctx.locale, setLang: ctx.setLang };
+/* Hook for consuming translations in any client component */
+export function useT() {
+  return useContext(LanguageContext);
 }

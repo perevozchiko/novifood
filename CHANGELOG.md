@@ -1,32 +1,31 @@
 # Changelog
 
-## 2026-06-25 (v1.4 — Day 6: i18n, dark/light theme, responsive layout)
+## 2026-06-25 (v1.4 — Day 6: Polish + Performance fix)
 
 Added:
 
-- `src/lib/i18n.ts` — EN/RU translation dictionaries; `getTranslations()` and `getLocale()` helpers
-- `src/providers/LanguageProvider.tsx` — React Context for language; `useT()` and `useLang()` hooks; persists choice in localStorage under key `lang`
-- `src/providers/ThemeProvider.tsx` — React Context for dark/light theme; applies `.dark` class to `<html>`; persists choice in localStorage under key `theme`; updates `theme-color` meta tag dynamically
-- `src/components/AppShell.tsx` — responsive application shell:
-  - Mobile (`< md`): existing bottom navigation bar
-  - Desktop (`md+`): fixed left sidebar navigation with `NoviFood` branding
-  - Theme toggle (Sun/Moon) and language toggle (EN/RU) in both layouts
-- Anti-FOUC inline script in `layout.tsx` — applies stored theme class before React hydrates
-- `__tests__/ThemeProvider.test.tsx` — 6 unit tests for toggle, localStorage persistence, dark class on `<html>`
-- `__tests__/LanguageProvider.test.tsx` — 6 unit tests for lang switching, translation output, localStorage persistence, error on missing provider
-- `__tests__/utils/renderWithProviders.tsx` — shared test utility that wraps components with both providers
+- `src/lib/i18n.ts` — EN/RU translation dictionaries, `translate()`, `formatDate()`, `formatNumber()` utilities
+- `src/providers/LanguageProvider.tsx` — React Context for locale, `useT()` hook, `localStorage` persistence
+- `src/providers/ThemeProvider.tsx` — dark/light theme toggle via `.dark` class on `<html>`, `useTheme()` hook
+- `src/app/ThemeToggle.tsx` — Sun/Moon toggle button (lucide-react)
+- `src/app/LangToggle.tsx` — EN/RU toggle button
+- `src/app/NavLinks.tsx` — shared navigation links for sidebar and bottom bar variants
+- `src/app/TodayDate.tsx` — client component for request-time date display
+- `__tests__/test-utils.tsx` — `renderWithProviders` wrapper with LanguageProvider for unit tests
+- Skeleton loading states (`animate-pulse`) in `/`, `/history`, `/weight`, `/settings` pages
 
-Changed:
+Fixed:
 
-- `src/app/globals.css` — added Tailwind v4 `@custom-variant dark` for class-based dark mode; removed `prefers-color-scheme` fallback (ThemeProvider handles this)
-- `src/app/layout.tsx` — replaced old inline nav with `ThemeProvider` + `LanguageProvider` + `AppShell` wrapper
-- All client components updated with `dark:` Tailwind classes and translated via `useT()`:
-  `MacroSummary`, `MealCard`, `AddMealForm`, `CameraUpload`, `PortionSelector`,
-  `DiaryClient`, `HistoryClient`, `WeightClient`, `SettingsClient`
-- Page headings moved from server `page.tsx` files into the respective Client Components so they can use `useT()`
-- `DiaryClient` now accepts `dateStr` prop and formats the date client-side with the active locale
-- All dates and locale-sensitive numbers now use `Intl` formatting via `useLang().locale`
-- Existing unit tests updated to use `renderWithProviders` wrapper (required after components started using `useT()`)
+- Tab switching delay: enabled `cacheComponents: true` (Next.js 16 PPR), wrapped all Supabase fetches in `<Suspense>` with `connection()` — static page shells now render instantly on navigation
+- Removed deprecated `export const dynamic = 'force-dynamic'` from all pages
+
+Refactored:
+
+- All components updated with `dark:` Tailwind v4 classes (`@custom-variant dark`)
+- All hardcoded UI strings replaced with `useT()` translations
+- `layout.tsx` — added ThemeProvider + LanguageProvider, anti-FOUC script, desktop sidebar (`md+`)
+- `globals.css` — switched to class-based dark mode (`@custom-variant dark (&:where(.dark,.dark *))`)
+- `HistoryClient` — today's date computed client-side (no server prop needed)
 
 ## 2026-06-25 (v1.3 — Version display)
 

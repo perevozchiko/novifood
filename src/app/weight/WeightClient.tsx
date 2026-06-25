@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { addWeight } from '@/lib/weight';
 import type { Weight } from '@/types';
-import { useT, useLang } from '@/providers/LanguageProvider';
+import { useT } from '@/providers/LanguageProvider';
 
 interface Props {
   initialHistory: Weight[];
@@ -55,8 +55,7 @@ function Sparkline({ data }: { data: Weight[] }) {
 }
 
 export default function WeightClient({ initialHistory }: Props) {
-  const t = useT();
-  const { locale } = useLang();
+  const { t, locale } = useT();
   const [history, setHistory] = useState<Weight[]>(initialHistory);
   const [input, setInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -66,7 +65,7 @@ export default function WeightClient({ initialHistory }: Props) {
     e.preventDefault();
     const value = parseFloat(input);
     if (isNaN(value) || value <= 0) {
-      setError(t('weight_error_invalid'));
+      setError(t('weight.errorInvalid'));
       return;
     }
     setSaving(true);
@@ -76,7 +75,7 @@ export default function WeightClient({ initialHistory }: Props) {
       setHistory((prev) => [...prev, entry]);
       setInput('');
     } catch {
-      setError(t('weight_error_save'));
+      setError(t('weight.errorSave'));
     } finally {
       setSaving(false);
     }
@@ -89,19 +88,15 @@ export default function WeightClient({ initialHistory }: Props) {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">{t('weight_title')}</h1>
-
       {/* Latest weight card */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
         {latest ? (
           <div className="flex items-end gap-3">
             <div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{t('weight_latest')}</p>
-              <p className="text-4xl font-bold text-gray-900 dark:text-gray-50">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{t('weight.latest')}</p>
+              <p className="text-4xl font-bold text-gray-900 dark:text-gray-100">
                 {latest.value}{' '}
-                <span className="text-lg font-normal text-gray-400 dark:text-gray-500">
-                  {t('weight_kg')}
-                </span>
+                <span className="text-lg font-normal text-gray-400 dark:text-gray-500">{t('weight.kg')}</span>
               </p>
             </div>
             {delta !== null && (
@@ -111,34 +106,34 @@ export default function WeightClient({ initialHistory }: Props) {
                 }`}
               >
                 {delta > 0 ? '+' : ''}
-                {delta} {t('weight_kg')}
+                {delta} {t('weight.kg')}
               </p>
             )}
           </div>
         ) : (
           <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
-            {t('weight_no_entries')}
+            {t('weight.empty')}
           </p>
         )}
       </div>
 
       {/* Sparkline chart */}
       {history.length >= 2 && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm">
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">{t('weight_trend')}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">{t('weight.trend')}</p>
           <Sparkline data={history} />
           <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
             <span>
-              {new Date(history[0].created_at).toLocaleDateString(locale, {
-                day: 'numeric',
-                month: 'short',
-              })}
+              {new Date(history[0].created_at).toLocaleDateString(
+                locale === 'ru' ? 'ru-RU' : 'en-US',
+                { day: 'numeric', month: 'short' },
+              )}
             </span>
             <span>
-              {new Date(history[history.length - 1].created_at).toLocaleDateString(locale, {
-                day: 'numeric',
-                month: 'short',
-              })}
+              {new Date(history[history.length - 1].created_at).toLocaleDateString(
+                locale === 'ru' ? 'ru-RU' : 'en-US',
+                { day: 'numeric', month: 'short' },
+              )}
             </span>
           </div>
         </div>
@@ -147,11 +142,11 @@ export default function WeightClient({ initialHistory }: Props) {
       {/* Add weight form */}
       <form
         onSubmit={handleAdd}
-        className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm flex gap-3 items-end"
+        className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex gap-3 items-end"
       >
         <div className="flex-1">
           <label className="text-xs text-gray-400 dark:text-gray-500 block mb-1">
-            {t('weight_label')}
+            {t('weight.label')}
           </label>
           <input
             type="number"
@@ -164,7 +159,7 @@ export default function WeightClient({ initialHistory }: Props) {
               setError(null);
             }}
             placeholder="72.5"
-            className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100"
           />
           {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>
@@ -174,27 +169,23 @@ export default function WeightClient({ initialHistory }: Props) {
           className="flex items-center gap-1 bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-green-700 transition-colors"
         >
           <Plus size={16} />
-          {saving ? t('weight_adding') : t('weight_add')}
+          {saving ? t('weight.adding') : t('weight.add')}
         </button>
       </form>
 
       {/* History list */}
       {history.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm divide-y divide-gray-50 dark:divide-gray-800">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm divide-y divide-gray-50 dark:divide-gray-700">
           {[...history].reverse().slice(0, 30).map((w) => (
-            <div
-              key={w.id}
-              className="flex justify-between items-center px-4 py-3 text-sm"
-            >
+            <div key={w.id} className="flex justify-between items-center px-4 py-3 text-sm">
               <span className="text-gray-500 dark:text-gray-400">
-                {new Date(w.created_at).toLocaleDateString(locale, {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {new Date(w.created_at).toLocaleDateString(
+                  locale === 'ru' ? 'ru-RU' : 'en-US',
+                  { day: 'numeric', month: 'long', year: 'numeric' },
+                )}
               </span>
-              <span className="font-semibold text-gray-900 dark:text-gray-50">
-                {w.value} {t('weight_kg')}
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                {w.value} {t('weight.kg')}
               </span>
             </div>
           ))}
