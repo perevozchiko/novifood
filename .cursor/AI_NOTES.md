@@ -27,6 +27,7 @@
 | 5   | ✅ Done | /weight, /settings, PWA icons |
 | 6   | ✅ Done | i18n (EN/RU), dark/light theme, responsive desktop sidebar |
 | Perf| ✅ Done | cacheComponents (PPR), Suspense streaming, instant tab nav |
+| 7   | ✅ Done | MacroSummary in history, notes field, weight delete, more tests |
 
 ## Performance Fix (2026-06-25)
 
@@ -60,6 +61,13 @@ Fix:
 - Toggle: `.dark` class on `<html>`, localStorage key `theme`
 - Anti-FOUC: inline `<script>` in `<head>` reads localStorage before first paint
 - Respects OS `prefers-color-scheme` as initial default
+
+## Day 7 Features (2026-06-25)
+
+- `MacroSummary` added to `/history` for the selected day (settings fetched server-side via `HistoryContent` async component)
+- Optional `notes` field added to `AddMealForm` and `MealCard` (stored in `meals.notes`, shown as italic caption)
+- `deleteWeight(id)` added to `weight.ts`; delete button in `/weight` history list
+- New unit tests: `SettingsClient.test.tsx` (8), `WeightClient.test.tsx` (7)
 
 ## Version Display
 

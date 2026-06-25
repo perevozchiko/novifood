@@ -4,7 +4,8 @@
   HistoryClient — calendar navigation + day view.
 
   Fetches meals for the selected day via Supabase browser client,
-  allows editing and deleting entries inline.
+  allows editing and deleting entries inline, and shows a MacroSummary
+  for the selected day.
 
   Today's date is computed client-side (the component is wrapped in
   Suspense in the page so new Date() is safe here).
@@ -14,10 +15,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import MealCard from '@/components/MealCard';
+import MacroSummary from '@/components/MacroSummary';
 import { deleteMeal, updateMeal } from '@/lib/meals';
-import type { Meal } from '@/types';
+import type { Meal, Settings } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 import { formatDate } from '@/lib/i18n';
+
+interface Props {
+  settings: Settings;
+}
 
 function addDays(dateStr: string, n: number): string {
   const d = new Date(dateStr + 'T12:00:00');
@@ -25,7 +31,7 @@ function addDays(dateStr: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default function HistoryClient() {
+export default function HistoryClient({ settings }: Props) {
   const { t, locale } = useT();
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -122,6 +128,8 @@ export default function HistoryClient() {
 
       {!loading && meals.length > 0 && (
         <>
+          <MacroSummary meals={meals} settings={settings} />
+
           <div className="space-y-3">
             {meals.map((m) => (
               <MealCard key={m.id} meal={m} onDelete={handleDelete} onUpdate={handleUpdate} />

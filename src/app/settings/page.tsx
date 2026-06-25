@@ -36,8 +36,6 @@ async function SettingsDataLoader() {
 export default function SettingsPage() {
   return (
     <div className="pt-6">
-      <h1 className="text-2xl font-bold mb-2 dark:text-gray-100">Цели КБЖУ</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Ваши дневные нормы</p>
       <Suspense fallback={<SettingsSkeleton />}>
         <SettingsDataLoader />
       </Suspense>

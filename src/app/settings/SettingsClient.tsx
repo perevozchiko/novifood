@@ -57,6 +57,7 @@ export default function SettingsClient({ settings }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">{t('settings.title')}</h1>
       {fields.map(({ key, labelKey, unitKey }) => (
         <div key={key} className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
           <label className="flex justify-between text-sm mb-2">

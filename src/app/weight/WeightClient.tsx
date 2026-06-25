@@ -1,14 +1,14 @@
 'use client';
 
 /*
-  WeightClient — add entries and view a simple sparkline of weight history.
+  WeightClient — add/delete entries and view a simple sparkline of weight history.
 
   Renders a minimal SVG chart so the user can see their trend at a glance.
 */
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import { addWeight } from '@/lib/weight';
+import { Plus, Trash2 } from 'lucide-react';
+import { addWeight, deleteWeight } from '@/lib/weight';
 import type { Weight } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 
@@ -60,6 +60,7 @@ export default function WeightClient({ initialHistory }: Props) {
   const [input, setInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -81,6 +82,18 @@ export default function WeightClient({ initialHistory }: Props) {
     }
   }
 
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    try {
+      await deleteWeight(id);
+      setHistory((prev) => prev.filter((w) => w.id !== id));
+    } catch {
+      setError(t('weight.deleteError'));
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   const latest = history[history.length - 1];
   const previous = history[history.length - 2];
   const delta =
@@ -88,6 +101,8 @@ export default function WeightClient({ initialHistory }: Props) {
 
   return (
     <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">{t('weight.title')}</h1>
+
       {/* Latest weight card */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
         {latest ? (
@@ -173,7 +188,7 @@ export default function WeightClient({ initialHistory }: Props) {
         </button>
       </form>
 
-      {/* History list */}
+      {/* History list with delete */}
       {history.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm divide-y divide-gray-50 dark:divide-gray-700">
           {[...history].reverse().slice(0, 30).map((w) => (
@@ -184,9 +199,19 @@ export default function WeightClient({ initialHistory }: Props) {
                   { day: 'numeric', month: 'long', year: 'numeric' },
                 )}
               </span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">
-                {w.value} {t('weight.kg')}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                  {w.value} {t('weight.kg')}
+                </span>
+                <button
+                  onClick={() => handleDelete(w.id)}
+                  disabled={deletingId === w.id}
+                  className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors disabled:opacity-40"
+                  aria-label={t('weight.deleteAria')}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </div>

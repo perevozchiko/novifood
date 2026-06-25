@@ -28,3 +28,13 @@ export async function addWeight(value: number): Promise<Weight> {
   if (error) throw error;
   return data;
 }
+
+/* Delete a weight record by id. */
+export async function deleteWeight(id: string): Promise<void> {
+  const { error } = await supabaseBrowser
+    .from('weight')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}

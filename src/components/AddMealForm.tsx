@@ -8,8 +8,9 @@ import { useT } from '@/providers/LanguageProvider';
 /*
   AddMealForm component.
 
-  Manual food entry form. Collects name, meal_type, and КБЖУ values.
-  Calls onAdd with the new entry so the parent can optimistically update the list.
+  Manual food entry form. Collects name, meal_type, КБЖУ values, and
+  an optional notes field. Calls onAdd with the new entry so the parent
+  can optimistically update the list.
 */
 
 const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -25,6 +26,7 @@ const EMPTY = {
   protein: 0,
   fat: 0,
   carbs: 0,
+  notes: '',
 };
 
 export default function AddMealForm({ onAdd }: Props) {
@@ -56,7 +58,7 @@ export default function AddMealForm({ onAdd }: Props) {
         fat: form.fat,
         carbs: form.carbs,
         eaten_at: new Date().toISOString(),
-        notes: null,
+        notes: form.notes.trim() || null,
       });
       setForm(EMPTY);
       setOpen(false);
@@ -107,7 +109,7 @@ export default function AddMealForm({ onAdd }: Props) {
         ))}
       </select>
 
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-4 gap-2 mb-3">
         {(
           [
             { key: 'calories', labelKey: 'addMeal.calories' },
@@ -130,6 +132,15 @@ export default function AddMealForm({ onAdd }: Props) {
           </div>
         ))}
       </div>
+
+      {/* Optional notes */}
+      <textarea
+        className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-green-400 placeholder:text-gray-400"
+        rows={2}
+        placeholder={t('meal.notesPlaceholder')}
+        value={form.notes}
+        onChange={(e) => setField('notes', e.target.value)}
+      />
 
       {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
 

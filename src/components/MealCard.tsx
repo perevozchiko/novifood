@@ -8,8 +8,9 @@ import { useT } from '@/providers/LanguageProvider';
 /*
   MealCard component.
 
-  Displays a single meal entry with macros. Supports inline editing
-  of name, macros, and meal_type, and a delete action.
+  Displays a single meal entry with macros and optional notes.
+  Supports inline editing of name, macros, meal_type, and notes,
+  plus a delete action.
 */
 
 const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -30,6 +31,7 @@ export default function MealCard({ meal, onDelete, onUpdate }: Props) {
     fat: meal.fat,
     carbs: meal.carbs,
     meal_type: meal.meal_type,
+    notes: meal.notes ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -37,7 +39,10 @@ export default function MealCard({ meal, onDelete, onUpdate }: Props) {
   async function handleSave() {
     setSaving(true);
     try {
-      await onUpdate(meal.id, draft);
+      await onUpdate(meal.id, {
+        ...draft,
+        notes: draft.notes.trim() || null,
+      });
       setEditing(false);
     } finally {
       setSaving(false);
@@ -52,6 +57,7 @@ export default function MealCard({ meal, onDelete, onUpdate }: Props) {
       fat: meal.fat,
       carbs: meal.carbs,
       meal_type: meal.meal_type,
+      notes: meal.notes ?? '',
     });
     setEditing(false);
   }
@@ -122,6 +128,13 @@ export default function MealCard({ meal, onDelete, onUpdate }: Props) {
             </div>
           ))}
         </div>
+        <textarea
+          className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm mb-3 resize-none focus:outline-none focus:ring-2 focus:ring-green-400 placeholder:text-gray-400"
+          rows={2}
+          placeholder={t('meal.notesPlaceholder')}
+          value={draft.notes}
+          onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
+        />
         <div className="flex gap-2">
           <button
             onClick={handleSave}
@@ -161,6 +174,11 @@ export default function MealCard({ meal, onDelete, onUpdate }: Props) {
           <span>Ж {meal.fat}г</span>
           <span>У {meal.carbs}г</span>
         </div>
+        {meal.notes && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic leading-snug line-clamp-2">
+            {meal.notes}
+          </p>
+        )}
       </div>
       <div className="flex gap-1 shrink-0">
         <button

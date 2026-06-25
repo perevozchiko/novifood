@@ -1,11 +1,13 @@
 /*
   History screen — browse and edit meals for past days.
 
-  Static heading renders instantly; HistoryClient is wrapped in Suspense
-  so its runtime `new Date()` call is deferred to request time.
+  Static heading renders instantly; HistoryContent is wrapped in Suspense
+  so its Supabase fetch is deferred to request time (PPR-compatible).
 */
 
 import { Suspense } from 'react';
+import { connection } from 'next/server';
+import { getSettings } from '@/lib/settings';
 import HistoryClient from './HistoryClient';
 
 function HistorySkeleton() {
@@ -26,12 +28,18 @@ function HistorySkeleton() {
   );
 }
 
+async function HistoryContent() {
+  await connection();
+  const settings = await getSettings();
+  return <HistoryClient settings={settings} />;
+}
+
 export default function HistoryPage() {
   return (
     <div className="pt-6">
       <h1 className="text-2xl font-bold mb-6 dark:text-gray-100">История</h1>
       <Suspense fallback={<HistorySkeleton />}>
-        <HistoryClient />
+        <HistoryContent />
       </Suspense>
     </div>
   );

@@ -44,6 +44,8 @@ const dictionaries = {
     'meal.type.lunch': 'Lunch',
     'meal.type.dinner': 'Dinner',
     'meal.type.snack': 'Snack',
+    'meal.notes': 'Notes',
+    'meal.notesPlaceholder': 'Optional notes…',
 
     // AddMealForm
     'addMeal.button': 'Add meal',
@@ -98,6 +100,8 @@ const dictionaries = {
     'weight.empty': 'No entries. Add your first weight.',
     'weight.errorInvalid': 'Enter a valid weight (kg)',
     'weight.errorSave': 'Failed to save. Try again.',
+    'weight.deleteAria': 'Delete entry',
+    'weight.deleteError': 'Failed to delete. Try again.',
 
     // Settings
     'settings.title': 'Daily Goals',
@@ -146,6 +150,8 @@ const dictionaries = {
     'meal.type.lunch': 'Обед',
     'meal.type.dinner': 'Ужин',
     'meal.type.snack': 'Перекус',
+    'meal.notes': 'Заметки',
+    'meal.notesPlaceholder': 'Заметка (необязательно)…',
 
     // AddMealForm
     'addMeal.button': 'Добавить блюдо',
@@ -200,6 +206,8 @@ const dictionaries = {
     'weight.empty': 'Нет записей. Добавьте первое значение.',
     'weight.errorInvalid': 'Введите корректный вес (кг)',
     'weight.errorSave': 'Не удалось сохранить. Попробуйте снова.',
+    'weight.deleteAria': 'Удалить запись',
+    'weight.deleteError': 'Не удалось удалить. Попробуйте снова.',
 
     // Settings
     'settings.title': 'Цели КБЖУ',
