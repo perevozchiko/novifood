@@ -179,6 +179,11 @@ const dictionaries = {
     'settings.water': 'Water',
     'settings.waterGoal': 'Daily water goal',
     'settings.waterMl': 'ml',
+
+    // Error boundary
+    'error.title': 'Something went wrong',
+    'error.hint': 'Failed to load data. Please reload the page.',
+    'error.reload': 'Reload',
   },
   ru: {
     // Navigation
@@ -348,6 +353,11 @@ const dictionaries = {
     'settings.water': 'Вода',
     'settings.waterGoal': 'Дневная норма воды',
     'settings.waterMl': 'мл',
+
+    // Error boundary
+    'error.title': 'Что-то пошло не так',
+    'error.hint': 'Не удалось загрузить данные. Попробуйте обновить страницу.',
+    'error.reload': 'Обновить',
   },
 } as const;
 

@@ -99,10 +99,23 @@ Fix:
 
 - Supabase project: `awdhmtctrlynbdzylrvw` (eu-central-1) — linked via CLI
 - Migrations applied: `supabase/migrations/0001_init.sql` ✅
-- Pending migration: `supabase/migrations/0002_water_intake.sql` ⚠️ run `supabase db push`
+- Pending migration: `supabase/migrations/0002_water_intake.sql` ⚠️ run `supabase db push` to enable water tracking in production
 - Tables verified via REST API: `meals` ✅ `settings` ✅ (default row) `weight` ✅
 - `.env.local` filled with URL + anon key ⚠️ GEMINI_API_KEY still empty
 - `npm run dev` running on http://localhost:3000
+
+## Diary Crash Fix (2026-06-25)
+
+Root cause: `DiaryDataLoader` called `getWaterByDate()` which queries `water_intake` table.
+That table didn't exist on production (migration 0002 never applied via `supabase db push`).
+Supabase returned an error → `getWaterByDate` threw → no error boundary → Vercel 500.
+
+Fix:
+- `DiaryDataLoader` now catches errors from `getWaterByDate()` and falls back to `[]`
+- Added `src/app/error.tsx` root error boundary for all future unhandled server errors
+- Added `error.*` i18n keys (EN + RU)
+
+To permanently resolve: run `supabase db push` to apply migration 0002.
 
 ## Before Starting Day 2
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-25 (v1.9 — Fix diary server error)
+
+Fixed:
+
+- Diary page (`/`) crashed with "A server error occurred" on Vercel because `getWaterByDate()` queried the `water_intake` table before migration `0002_water_intake.sql` was applied to the production database. `DiaryDataLoader` now catches the error from that call and falls back to an empty array, so the page loads correctly even with a pending migration.
+- Added `src/app/error.tsx` root error boundary: unhandled server-component errors now show a user-friendly "Something went wrong / Что-то пошло не так" card with a Reload button instead of the generic Vercel 500 page.
+- Added `error.title`, `error.hint`, `error.reload` i18n keys (EN + RU).
+
 ## 2026-06-25 (v1.8 — Bug fixes + Water intake tracking)
 
 Fixed:
