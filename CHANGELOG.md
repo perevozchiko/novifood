@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-25 (v1.5 — Dynamic theme-color + Docs)
+
+Added:
+
+- Dynamic `theme-color` meta tag: `#ffffff` for light theme, `#1f2937` for dark theme
+- Meta tag is updated by `ThemeProvider.applyTheme()` on every toggle
+- Anti-FOUC inline script extended to also set `theme-color` before first paint (dark mode initial load)
+- `docs/plan.md` — sections 15 (Day 7) and 16 (theme-color) added, marked ✅
+- `.cursor/TODO.md` — all implemented items marked `[x]`, Day 7 section added
+
 ## 2026-06-25 (v1.4 — Day 6: Polish + Performance fix)
 
 Added:

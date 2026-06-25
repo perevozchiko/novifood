@@ -348,6 +348,7 @@ v0.1.0 (a3f9c1b)
 - [x] Кнопка переключения темы в layout (иконки `Sun` / `Moon` из lucide-react)
 - [x] Все компоненты покрыть `dark:` классами Tailwind (фон, текст, карточки, форма, навигация)
 - [x] Anti-FOUC скрипт в `<head>` — читает `localStorage` до первого рендера
+- [x] Мета-тег `theme-color` переключается динамически при смене темы
 
 ### 13.3 Адаптивный layout (mobile + desktop) ✅
 
@@ -380,3 +381,48 @@ v0.1.0 (a3f9c1b)
 - [x] `TodayDate` — Client Component, тоже обёрнут в `<Suspense>` (нет `new Date()` в статическом shell)
 - [x] Скелетоны с `animate-pulse` для визуальной обратной связи во время загрузки
 - [x] React Activity (`cacheComponents`) сохраняет до 3 страниц в памяти — повторная навигация мгновенная
+
+---
+
+## 📅 15. Пошаговый план спринта — День 7 (Расширение функциональности) ✅
+
+### 15.1 MacroSummary на странице истории ✅
+
+- [x] Страница `/history` — добавлен async компонент `HistoryContent` (Server Component)
+- [x] `HistoryContent` загружает `settings` server-side и передаёт в `HistoryClient`
+- [x] `HistoryClient` отображает `MacroSummary` для выбранного дня (не только для сегодня)
+
+### 15.2 Поле «Заметки» для блюда ✅
+
+- [x] `AddMealForm.tsx` — необязательное поле `notes` (textarea)
+- [x] `MealCard.tsx` — отображение `notes` как italic-подпись, редактирование в inline-форме
+- [x] Поле `notes` уже присутствует в типе `Meal` и таблице `meals.notes`
+
+### 15.3 Удаление записей веса ✅
+
+- [x] `src/lib/weight.ts` — функция `deleteWeight(id: string)`
+- [x] `WeightClient.tsx` — кнопка удаления рядом с каждой записью истории
+- [x] Optimistic UI: запись удаляется из state немедленно
+
+### 15.4 Новые unit-тесты ✅
+
+- [x] `__tests__/SettingsClient.test.tsx` — 8 тестов: рендер, изменение полей, submit, отмена
+- [x] `__tests__/WeightClient.test.tsx` — 7 тестов: рендер, добавление, удаление, график
+
+---
+
+## 🎨 16. Динамический мета-тег theme-color ✅
+
+### Назначение
+
+Мета-тег `theme-color` управляет цветом адресной строки и UI браузера на мобильных устройствах (Android Chrome, Safari iOS). При смене темы тег обновляется динамически.
+
+### Реализация
+
+| Файл | Изменение |
+|------|-----------|
+| `src/app/layout.tsx` | Статический `<meta name="theme-color">` с начальным значением (светлая тема) |
+| `src/providers/ThemeProvider.tsx` | `applyTheme()` обновляет `content` мета-тега через `document.querySelector` |
+
+- Светлая тема → `#ffffff`
+- Тёмная тема → `#1f2937` (соответствует `bg-gray-800` в Tailwind)
