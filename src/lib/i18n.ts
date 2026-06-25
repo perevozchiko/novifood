@@ -142,6 +142,12 @@ const dictionaries = {
     'settings.theme.dark': 'Dark',
     'settings.language': 'Language',
     'settings.version': 'Version',
+
+    // Settings — data export section
+    'settings.data': 'Data',
+    'settings.export.meals': 'Export meals (CSV)',
+    'settings.export.weight': 'Export weight (CSV)',
+    'settings.export.loading': 'Preparing…',
   },
   ru: {
     // Navigation
@@ -274,6 +280,12 @@ const dictionaries = {
     'settings.theme.dark': 'Тёмная',
     'settings.language': 'Язык',
     'settings.version': 'Версия',
+
+    // Settings — data export section
+    'settings.data': 'Данные',
+    'settings.export.meals': 'Экспорт питания (CSV)',
+    'settings.export.weight': 'Экспорт веса (CSV)',
+    'settings.export.loading': 'Подготовка…',
   },
 } as const;
 

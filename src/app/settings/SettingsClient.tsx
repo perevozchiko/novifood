@@ -9,8 +9,10 @@
 */
 
 import { useState } from 'react';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Download } from 'lucide-react';
 import { updateSettings } from '@/lib/settings';
+import { supabaseBrowser } from '@/lib/supabase-browser';
+import { exportMealsCsv, exportWeightCsv } from '@/lib/export-csv';
 import type { Settings } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -32,6 +34,34 @@ export default function SettingsClient({ settings }: Props) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exportingMeals, setExportingMeals] = useState(false);
+  const [exportingWeight, setExportingWeight] = useState(false);
+
+  async function handleExportMeals() {
+    setExportingMeals(true);
+    try {
+      const { data } = await supabaseBrowser
+        .from('meals')
+        .select('*')
+        .order('eaten_at', { ascending: true });
+      exportMealsCsv(data ?? []);
+    } finally {
+      setExportingMeals(false);
+    }
+  }
+
+  async function handleExportWeight() {
+    setExportingWeight(true);
+    try {
+      const { data } = await supabaseBrowser
+        .from('weight')
+        .select('*')
+        .order('created_at', { ascending: true });
+      exportWeightCsv(data ?? []);
+    } finally {
+      setExportingWeight(false);
+    }
+  }
 
   function setField(key: keyof typeof form, value: number) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -170,6 +200,37 @@ export default function SettingsClient({ settings }: Props) {
             v{version} ({gitHash})
           </span>
         </div>
+      </div>
+
+      {/* ── Data export ── */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 px-1">
+          {t('settings.data')}
+        </h2>
+
+        <button
+          type="button"
+          onClick={handleExportMeals}
+          disabled={exportingMeals}
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors disabled:opacity-60"
+        >
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {exportingMeals ? t('settings.export.loading') : t('settings.export.meals')}
+          </span>
+          <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+        </button>
+
+        <button
+          type="button"
+          onClick={handleExportWeight}
+          disabled={exportingWeight}
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors disabled:opacity-60"
+        >
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {exportingWeight ? t('settings.export.loading') : t('settings.export.weight')}
+          </span>
+          <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+        </button>
       </div>
     </div>
   );
