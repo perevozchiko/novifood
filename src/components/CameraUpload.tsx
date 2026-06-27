@@ -50,7 +50,9 @@ export default function CameraUpload({ onConfirm }: Props) {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         let msg: string;
-        if (res.status === 429 && data.code === 'DAILY_LIMIT') {
+        if (data.code === 'NOT_CONFIGURED') {
+          msg = t('camera.errorNotConfigured');
+        } else if (res.status === 429 && data.code === 'DAILY_LIMIT') {
           msg = t('camera.errorDailyLimit');
         } else if (res.status === 429) {
           msg = t('camera.errorQuota');

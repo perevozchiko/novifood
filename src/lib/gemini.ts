@@ -31,13 +31,15 @@ All macro values must be integers representing the full portion visible in the p
 Calories in kcal, protein/fat/carbs in grams.`;
 
 /*
-  Structured error that carries an HTTP status so the API route can forward
-  the right status code to the client without exposing Gemini internals.
+  Structured error that carries an HTTP status and an optional machine-readable
+  code so the API route can forward the right status and code to the client
+  without exposing Gemini internals.
 */
 export class GeminiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = 'GeminiError';
@@ -66,6 +68,7 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
           'Gemini API not configured: quota is 0. ' +
           'Create a new API key at aistudio.google.com/apikey and update GEMINI_API_KEY in your deployment.',
           500,
+          'NOT_CONFIGURED',
         );
       }
       return new GeminiError('AI quota exceeded. Please try again later.', 429);
@@ -121,7 +124,7 @@ async function tryModel(apiKey: string, model: string, base64Image: string): Pro
 */
 export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500);
+  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
 
   let lastError: GeminiError | null = null;
 
