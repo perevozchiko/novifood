@@ -54,6 +54,20 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
     const raw = json.error?.message ?? '';
 
     if (status === 429) {
+      /*
+        "limit: 0" in the Gemini error message means the Google Cloud project
+        has zero quota configured — this is a billing/setup issue, not exhaustion.
+        Retrying or waiting will not help; the developer must:
+          1. Create an API key via https://aistudio.google.com/apikey (not Cloud Console)
+          2. Or enable billing on the Google Cloud project to unlock free-tier quota.
+      */
+      if (raw.includes('limit: 0')) {
+        return new GeminiError(
+          'Gemini API not configured: quota is 0. ' +
+          'Create a new API key at aistudio.google.com/apikey and update GEMINI_API_KEY in your deployment.',
+          500,
+        );
+      }
       return new GeminiError('AI quota exceeded. Please try again later.', 429);
     }
 
