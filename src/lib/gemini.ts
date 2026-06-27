@@ -5,10 +5,23 @@ import type { FoodAnalysis } from '@/types';
 
   Called exclusively from the /api/analyze-food route so that
   GEMINI_API_KEY never reaches the browser bundle.
+
+  Models are tried in order. If a model returns 429 (quota exhausted)
+  the next model is attempted automatically — each model has its own
+  independent free-tier quota on Google AI Studio.
 */
 
-const MODEL = 'gemini-2.0-flash';
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+/*
+  Fallback chain: primary model first, then progressively lighter models.
+  Each has a separate RPM / RPD quota so a 429 on one does not affect others.
+*/
+const MODELS = [
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-8b',
+] as const;
 
 const PROMPT = `Analyse the food in this photo.
 Respond ONLY with a valid JSON object. Do not include markdown codeblocks, wrapping, or explanations.
@@ -32,9 +45,9 @@ export class GeminiError extends Error {
 }
 
 /* Extract a short human-readable message from a Gemini error response body. */
-function parseGeminiError(status: number, body: string): GeminiError {
+function parseGeminiError(status: number, body: string, model: string): GeminiError {
   // Log the full body on the server so developers can inspect it.
-  console.error(`Gemini API error ${status}:`, body);
+  console.error(`Gemini API error [${model}] ${status}:`, body);
 
   try {
     const json = JSON.parse(body) as { error?: { message?: string; status?: string } };
@@ -56,12 +69,11 @@ function parseGeminiError(status: number, body: string): GeminiError {
   }
 }
 
-/* Send a base64-encoded JPEG to Gemini and parse the macro response. */
-export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500);
+/* Send a base64-encoded JPEG to a specific model and parse the macro response. */
+async function tryModel(apiKey: string, model: string, base64Image: string): Promise<FoodAnalysis> {
+  const url = `${BASE_URL}/${model}:generateContent?key=${apiKey}`;
 
-  const response = await fetch(`${API_URL}?key=${apiKey}`, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -78,7 +90,7 @@ export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
 
   if (!response.ok) {
     const errText = await response.text();
-    throw parseGeminiError(response.status, errText);
+    throw parseGeminiError(response.status, errText, model);
   }
 
   const result = await response.json();
@@ -87,4 +99,32 @@ export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
   // Strip accidental markdown fences that some model versions include.
   const cleanJson = text.replace(/```json|```/g, '').trim();
   return JSON.parse(cleanJson) as FoodAnalysis;
+}
+
+/*
+  Send a base64-encoded JPEG to Gemini and parse the macro response.
+  Tries each model in MODELS order; skips to the next on quota errors (429).
+*/
+export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500);
+
+  let lastError: GeminiError | null = null;
+
+  for (const model of MODELS) {
+    try {
+      return await tryModel(apiKey, model, base64Image);
+    } catch (err) {
+      if (err instanceof GeminiError && err.status === 429) {
+        // This model's quota is exhausted — try the next one.
+        console.warn(`Model ${model} quota exceeded, trying next model…`);
+        lastError = err;
+        continue;
+      }
+      // Non-quota errors (auth, parse failures, etc.) are fatal.
+      throw err;
+    }
+  }
+
+  throw lastError ?? new GeminiError('All AI models are currently unavailable.', 429);
 }

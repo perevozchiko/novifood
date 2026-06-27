@@ -95,11 +95,22 @@ Fix:
 - `SettingsClient` extended with water goal field
 - **Important**: migration `0002_water_intake.sql` must be applied via `supabase db push` before using water tracking
 
+## AI Rate Limiting (2026-06-27)
+
+Root cause of "AI limit reached" on every request: `/api/analyze-food` had no internal rate limiting. The Gemini free-tier quota (15 RPM / 1,500 RPD) could be fully exhausted before the user ever opened the app, making every request return 429.
+
+Fix:
+- New `ai_usage` table (migration 0003) stores one row per UTC date with a `count` column.
+- API route reads `count` for today before calling Gemini. If `count >= 50` (DAILY_LIMIT), it returns 429 with `code: 'DAILY_LIMIT'` without touching Gemini at all.
+- Counter is incremented only after a successful Gemini response.
+- Frontend now shows two distinct messages: `camera.errorDailyLimit` (internal cap hit) vs `camera.errorQuota` (Gemini external quota exceeded).
+
 ## Infrastructure Status
 
 - Supabase project: `awdhmtctrlynbdzylrvw` (eu-central-1) — linked via CLI
 - Migrations applied: `supabase/migrations/0001_init.sql` ✅
 - Pending migration: `supabase/migrations/0002_water_intake.sql` ⚠️ run `supabase db push` to enable water tracking in production
+- Pending migration: `supabase/migrations/0003_ai_rate_limit.sql` ⚠️ run `supabase db push` to enable AI rate limiting in production
 - Tables verified via REST API: `meals` ✅ `settings` ✅ (default row) `weight` ✅
 - `.env.local` filled with URL + anon key ⚠️ GEMINI_API_KEY still empty
 - `npm run dev` running on http://localhost:3000

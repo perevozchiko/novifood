@@ -75,7 +75,8 @@ const dictionaries = {
     'camera.retry': 'Try again',
     'camera.cancel': 'Cancel',
     'camera.errorAnalysis': 'Failed to analyse photo. Please try again.',
-    'camera.errorQuota': 'AI limit reached. Try again in a few minutes.',
+    'camera.errorQuota': 'AI service is temporarily unavailable. Try again in a few minutes.',
+    'camera.errorDailyLimit': 'Daily AI limit reached (50 analyses). Resets at midnight UTC.',
     'camera.errorSave': 'Failed to save.',
     'camera.portion': 'Portion',
 
@@ -249,7 +250,8 @@ const dictionaries = {
     'camera.retry': 'Попробовать снова',
     'camera.cancel': 'Отмена',
     'camera.errorAnalysis': 'Не удалось проанализировать фото. Попробуйте ещё раз.',
-    'camera.errorQuota': 'Лимит ИИ исчерпан. Попробуйте через несколько минут.',
+    'camera.errorQuota': 'Сервис ИИ временно недоступен. Попробуйте через несколько минут.',
+    'camera.errorDailyLimit': 'Дневной лимит ИИ исчерпан (50 анализов). Сбрасывается в полночь по UTC.',
     'camera.errorSave': 'Не удалось сохранить.',
     'camera.portion': 'Порция',
 
