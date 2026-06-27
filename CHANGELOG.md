@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-27 (v1.10 — AI rate limiting)
+
+Fixed:
+
+- "AI limit reached" error appeared on every request because the `/api/analyze-food` endpoint had no internal rate limiting and could exhaust the Gemini free-tier daily quota (1 500 RPD) through normal use or public access.
+
+Added:
+
+- `supabase/migrations/0003_ai_rate_limit.sql` — new `ai_usage` table that tracks the number of AI analyses per UTC calendar day.
+- Server-side daily cap of **50 analyses per day** enforced in `analyze-food` route before calling Gemini. Counter is incremented only after a successful analysis.
+- Two distinct 429 error messages: `camera.errorDailyLimit` (our cap hit) and `camera.errorQuota` (Gemini's own quota exhausted). The frontend now shows the correct message for each case.
+- `camera.errorDailyLimit` i18n keys in both EN and RU.
+
+Migration required:
+
+- Run `supabase db push` to apply migration `0003_ai_rate_limit.sql` to the production database.
+
 ## 2026-06-25 (v1.9 — Fix diary server error)
 
 Fixed:
