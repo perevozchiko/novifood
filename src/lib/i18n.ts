@@ -77,6 +77,7 @@ const dictionaries = {
     'camera.errorAnalysis': 'Failed to analyse photo. Please try again.',
     'camera.errorQuota': 'AI service is temporarily unavailable. Try again in a few minutes.',
     'camera.errorDailyLimit': 'Daily AI limit reached (50 analyses). Resets at midnight UTC.',
+    'camera.errorNotConfigured': 'AI recognition is not available. The administrator needs to configure the API key.',
     'camera.errorSave': 'Failed to save.',
     'camera.portion': 'Portion',
 
@@ -252,6 +253,7 @@ const dictionaries = {
     'camera.errorAnalysis': 'Не удалось проанализировать фото. Попробуйте ещё раз.',
     'camera.errorQuota': 'Сервис ИИ временно недоступен. Попробуйте через несколько минут.',
     'camera.errorDailyLimit': 'Дневной лимит ИИ исчерпан (50 анализов). Сбрасывается в полночь по UTC.',
+    'camera.errorNotConfigured': 'Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ.',
     'camera.errorSave': 'Не удалось сохранить.',
     'camera.portion': 'Порция',
 

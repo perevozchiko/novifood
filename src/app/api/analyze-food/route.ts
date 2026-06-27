@@ -55,7 +55,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (error: unknown) {
     if (error instanceof GeminiError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, ...(error.code ? { code: error.code } : {}) },
+        { status: error.status },
+      );
     }
     const message = error instanceof Error ? error.message : 'Failed to analyze image';
     console.error('analyze-food error:', error);

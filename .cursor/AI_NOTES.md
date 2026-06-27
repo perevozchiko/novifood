@@ -115,6 +115,14 @@ Fix:
 - `.env.local` filled with URL + anon key ⚠️ GEMINI_API_KEY still empty
 - `npm run dev` running on http://localhost:3000
 
+## GEMINI_API_KEY Setup (Critical)
+
+The "quota is 0" / "NOT_CONFIGURED" error means the API key was created via Google Cloud Console instead of Google AI Studio. Keys from Cloud Console have `limit: 0` by default.
+
+**Fix**: Create a key at https://aistudio.google.com/apikey and set `GEMINI_API_KEY` in:
+- Vercel: Project Settings → Environment Variables → `GEMINI_API_KEY`
+- Local dev: `.env.local` (copy from `.env.local.example`, fill in the key)
+
 ## Diary Crash Fix (2026-06-25)
 
 Root cause: `DiaryDataLoader` called `getWaterByDate()` which queries `water_intake` table.

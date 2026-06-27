@@ -31,13 +31,15 @@ All macro values must be integers representing the full portion visible in the p
 Calories in kcal, protein/fat/carbs in grams.`;
 
 /*
-  Structured error that carries an HTTP status so the API route can forward
-  the right status code to the client without exposing Gemini internals.
+  Structured error that carries an HTTP status and an optional machine-readable
+  code so the API route can forward the right status and code to the client
+  without exposing Gemini internals.
 */
 export class GeminiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = 'GeminiError';
@@ -66,6 +68,7 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
           'Gemini API not configured: quota is 0. ' +
           'Create a new API key at aistudio.google.com/apikey and update GEMINI_API_KEY in your deployment.',
           500,
+          'NOT_CONFIGURED',
         );
       }
       return new GeminiError('AI quota exceeded. Please try again later.', 429);
@@ -116,12 +119,25 @@ async function tryModel(apiKey: string, model: string, base64Image: string): Pro
 }
 
 /*
+  HTTP status codes from Gemini that mean this specific model is unavailable
+  but a different model in the chain might succeed.
+  - 429: quota exhausted for this model
+  - 404: model not found / not available in this region or account tier
+  - 503: model temporarily unavailable
+*/
+const RETRYABLE_STATUSES = new Set([429, 404, 503]);
+
+/*
   Send a base64-encoded JPEG to Gemini and parse the macro response.
-  Tries each model in MODELS order; skips to the next on quota errors (429).
+  Tries each model in MODELS order; skips to the next on model-specific failures.
+  Account-level errors (NOT_CONFIGURED, 401, 403) are thrown immediately.
 */
 export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500);
+  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
+
+  // Log key prefix so Vercel logs can confirm the correct key is loaded.
+  console.info(`analyzeFood: key=${apiKey.slice(0, 6)}… len=${apiKey.length}`);
 
   let lastError: GeminiError | null = null;
 
@@ -129,13 +145,16 @@ export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
     try {
       return await tryModel(apiKey, model, base64Image);
     } catch (err) {
-      if (err instanceof GeminiError && err.status === 429) {
-        // This model's quota is exhausted — try the next one.
-        console.warn(`Model ${model} quota exceeded, trying next model…`);
+      if (err instanceof GeminiError && err.code === 'NOT_CONFIGURED') {
+        // Account-level quota issue — no point trying other models.
+        throw err;
+      }
+      if (err instanceof GeminiError && RETRYABLE_STATUSES.has(err.status)) {
+        console.warn(`Model ${model} unavailable (${err.status}), trying next model…`);
         lastError = err;
         continue;
       }
-      // Non-quota errors (auth, parse failures, etc.) are fatal.
+      // Auth errors, config errors, parse failures — fatal.
       throw err;
     }
   }

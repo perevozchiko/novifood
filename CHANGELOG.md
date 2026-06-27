@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-06-27 (v1.12 — Gemini diagnostics + robust fallback)
+
+Added:
+
+- `GET /api/check-gemini` — диагностический эндпоинт без расхода квоты. Проверяет, что `GEMINI_API_KEY` загружен, соответствует формату `AIza…`, принимается Gemini API (через `models.list`) и возвращает список доступных моделей. Открыть после деплоя: `https://<домен>/api/check-gemini`.
+
+Fixed:
+
+- Цепочка fallback-моделей теперь переходит к следующей модели не только при 429 (квота), но и при 404 (модель недоступна в регионе) и 503 (модель временно недоступна). Раньше 404 на `gemini-2.0-flash` прерывал всю цепочку, не пробуя `gemini-1.5-flash` и `gemini-1.5-flash-8b`.
+- В логи Vercel теперь выводится префикс и длина ключа (`key=AIzaS… len=39`) при каждом вызове — помогает убедиться, что нужный ключ действительно подхватывается.
+
+
+
+Fixed:
+
+- Users saw a raw technical error message ("Gemini API not configured: quota is 0. Create a new API key at aistudio.google.com/apikey…") when the Gemini API key was created via Google Cloud Console (which has `limit: 0` quota) instead of Google AI Studio.
+- The same raw message appeared when `GEMINI_API_KEY` was missing entirely.
+
+Changed:
+
+- `GeminiError` now carries an optional `code` field alongside `status`. The `limit: 0` and missing-key cases both emit `code: 'NOT_CONFIGURED'`.
+- `POST /api/analyze-food` forwards the `code` field in the JSON error body when present.
+- `CameraUpload` checks for `code === 'NOT_CONFIGURED'` first and shows the localized `camera.errorNotConfigured` string instead of the raw developer-facing message.
+- Added `camera.errorNotConfigured` i18n keys: "AI recognition is not available. The administrator needs to configure the API key." (EN) / "Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ." (RU).
+
+Deployment note:
+
+- To resolve this error: create a Gemini API key at https://aistudio.google.com/apikey (not Google Cloud Console) and set `GEMINI_API_KEY` in your Vercel environment variables (or `.env.local` for local development).
+
 ## 2026-06-27 (v1.10 — AI rate limiting)
 
 Fixed:
