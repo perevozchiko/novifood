@@ -10,6 +10,14 @@ vi.mock('@/lib/settings', () => ({
   updateSettings: vi.fn(),
 }));
 
+/* Mock supabaseBrowser for delete-all functionality. */
+const mockFrom = vi.fn();
+vi.mock('@/lib/supabase-browser', () => ({
+  supabaseBrowser: {
+    from: (table: string) => mockFrom(table),
+  },
+}));
+
 import { updateSettings } from '@/lib/settings';
 
 const settings: Settings = {
@@ -18,11 +26,21 @@ const settings: Settings = {
   protein_goal: 150,
   fat_goal: 80,
   carbs_goal: 250,
+  water_goal_ml: 2000,
 };
 
 describe('SettingsClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    /* Default mock for select/order/delete chains used by export and delete handlers. */
+    const chainMock = {
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: [] }),
+      delete: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    mockFrom.mockReturnValue(chainMock);
   });
 
   it('render_ShouldShowTitle', () => {
@@ -62,12 +80,14 @@ describe('SettingsClient', () => {
     fireEvent.click(screen.getByText('Сохранить'));
 
     await waitFor(() => {
-      expect(updateSettings).toHaveBeenCalledWith({
-        calorie_goal: 2200,
-        protein_goal: 150,
-        fat_goal: 80,
-        carbs_goal: 250,
-      });
+      expect(updateSettings).toHaveBeenCalledWith(
+        expect.objectContaining({
+          calorie_goal: 2200,
+          protein_goal: 150,
+          fat_goal: 80,
+          carbs_goal: 250,
+        }),
+      );
     });
   });
 
@@ -109,6 +129,49 @@ describe('SettingsClient', () => {
       expect(updateSettings).toHaveBeenCalledWith(
         expect.objectContaining({ calorie_goal: 2500 }),
       );
+    });
+  });
+
+  it('deleteAll_ShouldShowConfirmDialog_WhenDeleteButtonClicked', () => {
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'ru' });
+    fireEvent.click(screen.getByText('Удалить все данные'));
+    expect(screen.getByText('Да, удалить всё')).toBeDefined();
+  });
+
+  it('deleteAll_ShouldHideConfirmDialog_WhenCancelClicked', () => {
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'ru' });
+    fireEvent.click(screen.getByText('Удалить все данные'));
+    fireEvent.click(screen.getAllByText('Отмена')[0]);
+    expect(screen.queryByText('Да, удалить всё')).toBeNull();
+  });
+
+  it('deleteAll_ShouldCallDeleteOnAllTables_WhenConfirmed', async () => {
+    const neqMock = vi.fn().mockResolvedValue({ error: null });
+    const deleteMock = vi.fn().mockReturnValue({ neq: neqMock });
+    mockFrom.mockReturnValue({ delete: deleteMock, select: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [] }) });
+
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'ru' });
+    fireEvent.click(screen.getByText('Удалить все данные'));
+    fireEvent.click(screen.getByText('Да, удалить всё'));
+
+    await waitFor(() => {
+      expect(mockFrom).toHaveBeenCalledWith('meals');
+      expect(mockFrom).toHaveBeenCalledWith('weight');
+      expect(mockFrom).toHaveBeenCalledWith('water_intake');
+    });
+  });
+
+  it('deleteAll_ShouldShowSuccess_AfterDeletion', async () => {
+    const neqMock = vi.fn().mockResolvedValue({ error: null });
+    const deleteMock = vi.fn().mockReturnValue({ neq: neqMock });
+    mockFrom.mockReturnValue({ delete: deleteMock, select: vi.fn().mockReturnThis(), order: vi.fn().mockResolvedValue({ data: [] }) });
+
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'ru' });
+    fireEvent.click(screen.getByText('Удалить все данные'));
+    fireEvent.click(screen.getByText('Да, удалить всё'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Все данные удалены')).toBeDefined();
     });
   });
 });
