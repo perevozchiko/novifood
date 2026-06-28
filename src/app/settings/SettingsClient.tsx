@@ -9,7 +9,7 @@
 */
 
 import { useState } from 'react';
-import { Sun, Moon, Download } from 'lucide-react';
+import { Sun, Moon, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { updateSettings } from '@/lib/settings';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { exportMealsCsv, exportWeightCsv } from '@/lib/export-csv';
@@ -37,6 +37,10 @@ export default function SettingsClient({ settings }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [exportingMeals, setExportingMeals] = useState(false);
   const [exportingWeight, setExportingWeight] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   async function handleExportMeals() {
     setExportingMeals(true);
@@ -61,6 +65,25 @@ export default function SettingsClient({ settings }: Props) {
       exportWeightCsv(data ?? []);
     } finally {
       setExportingWeight(false);
+    }
+  }
+
+  async function handleDeleteAll() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const results = await Promise.all([
+        supabaseBrowser.from('meals').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabaseBrowser.from('weight').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabaseBrowser.from('water_intake').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
+      if (results.some((r) => r.error)) throw new Error('delete failed');
+      setDeleteSuccess(true);
+      setShowDeleteConfirm(false);
+    } catch {
+      setDeleteError(t('settings.deleteAll.error'));
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -234,6 +257,73 @@ export default function SettingsClient({ settings }: Props) {
           <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
         </button>
       </div>
+
+      {/* ── Danger zone ── */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-red-500 dark:text-red-400 px-1">
+          {t('settings.danger')}
+        </h2>
+
+        {deleteSuccess && (
+          <p className="text-sm text-green-600 dark:text-green-400 px-1">
+            {t('settings.deleteAll.success')}
+          </p>
+        )}
+        {deleteError && (
+          <p className="text-sm text-red-500 px-1">{deleteError}</p>
+        )}
+
+        <button
+          type="button"
+          onClick={() => { setShowDeleteConfirm(true); setDeleteError(null); setDeleteSuccess(false); }}
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border border-red-200 dark:border-red-800"
+        >
+          <span className="text-sm font-medium text-red-600 dark:text-red-400">
+            {t('settings.deleteAll')}
+          </span>
+          <Trash2 size={16} className="text-red-400 shrink-0" />
+        </button>
+      </div>
+
+      {/* ── Delete confirmation modal ── */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+                <AlertTriangle size={20} className="text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                {t('settings.deleteAll')}
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+              {t('settings.deleteAll.warning')}
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-500 mb-4">{deleteError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                {t('settings.deleteAll.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAll}
+                disabled={deleting}
+                className="flex-1 bg-red-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleting ? t('settings.deleteAll.loading') : t('settings.deleteAll.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -151,6 +151,16 @@ const dictionaries = {
     'settings.export.weight': 'Export weight (CSV)',
     'settings.export.loading': 'Preparing…',
 
+    // Settings — delete all data
+    'settings.danger': 'Danger Zone',
+    'settings.deleteAll': 'Delete all data',
+    'settings.deleteAll.loading': 'Deleting…',
+    'settings.deleteAll.success': 'All data deleted',
+    'settings.deleteAll.error': 'Failed to delete data. Try again.',
+    'settings.deleteAll.warning': 'This will permanently delete all your meals, weight entries, and water intake data. This action cannot be undone.',
+    'settings.deleteAll.confirm': 'Yes, delete everything',
+    'settings.deleteAll.cancel': 'Cancel',
+
     // History search
     'history.search': 'Search meals…',
     'history.searchEmpty': 'No meals match "{0}"',
@@ -326,6 +336,16 @@ const dictionaries = {
     'settings.export.meals': 'Экспорт питания (CSV)',
     'settings.export.weight': 'Экспорт веса (CSV)',
     'settings.export.loading': 'Подготовка…',
+
+    // Settings — delete all data
+    'settings.danger': 'Опасная зона',
+    'settings.deleteAll': 'Удалить все данные',
+    'settings.deleteAll.loading': 'Удаление…',
+    'settings.deleteAll.success': 'Все данные удалены',
+    'settings.deleteAll.error': 'Не удалось удалить данные. Попробуйте снова.',
+    'settings.deleteAll.warning': 'Это действие навсегда удалит все записи о питании, весе и потреблении воды. Отменить это действие невозможно.',
+    'settings.deleteAll.confirm': 'Да, удалить всё',
+    'settings.deleteAll.cancel': 'Отмена',
 
     // History search
     'history.search': 'Поиск по блюдам…',

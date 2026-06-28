@@ -24,3 +24,24 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/*
+  Prevent iOS Safari from auto-zooming when an input/select/textarea
+  is focused. Safari zooms if font-size < 16px.
+*/
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/*
+  Force dark background on native <select> option elements
+  when dark theme is active. Browsers that use system rendering
+  (macOS/iOS) may ignore this, but it works on Android Chrome and
+  most desktop browsers.
+*/
+.dark select option {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
