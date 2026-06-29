@@ -81,6 +81,22 @@ const dictionaries = {
     'camera.errorSave': 'Failed to save.',
     'camera.portion': 'Portion',
 
+    // VoiceInput
+    'voice.button': 'Voice input',
+    'voice.listening': 'Listening…',
+    'voice.analysing': 'Analysing…',
+    'voice.transcript': 'You said:',
+    'voice.confirm': 'Add to diary',
+    'voice.confirmAdding': 'Adding…',
+    'voice.retry': 'Try again',
+    'voice.errorNotSupported': 'Voice input is not supported in this browser.',
+    'voice.errorNoSpeech': 'No speech detected. Try again.',
+    'voice.errorAnalysis': 'Failed to analyse voice input. Please try again.',
+    'voice.errorQuota': 'AI service is temporarily unavailable. Try again in a few minutes.',
+    'voice.errorDailyLimit': 'Daily AI limit reached (50 analyses). Resets at midnight UTC.',
+    'voice.errorNotConfigured': 'AI recognition is not available. The administrator needs to configure the API key.',
+    'voice.errorSave': 'Failed to save.',
+
     // PortionSelector
     'portion.label': 'Portion',
 
@@ -266,6 +282,22 @@ const dictionaries = {
     'camera.errorNotConfigured': 'Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ.',
     'camera.errorSave': 'Не удалось сохранить.',
     'camera.portion': 'Порция',
+
+    // VoiceInput
+    'voice.button': 'Голосовой ввод',
+    'voice.listening': 'Слушаю…',
+    'voice.analysing': 'Анализирую…',
+    'voice.transcript': 'Вы сказали:',
+    'voice.confirm': 'Добавить в дневник',
+    'voice.confirmAdding': 'Добавление…',
+    'voice.retry': 'Попробовать снова',
+    'voice.errorNotSupported': 'Голосовой ввод не поддерживается в этом браузере.',
+    'voice.errorNoSpeech': 'Речь не распознана. Попробуйте снова.',
+    'voice.errorAnalysis': 'Не удалось проанализировать голосовой ввод. Попробуйте снова.',
+    'voice.errorQuota': 'Сервис ИИ временно недоступен. Попробуйте через несколько минут.',
+    'voice.errorDailyLimit': 'Дневной лимит ИИ исчерпан (50 анализов). Сбрасывается в полночь по UTC.',
+    'voice.errorNotConfigured': 'Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ.',
+    'voice.errorSave': 'Не удалось сохранить.',
 
     // PortionSelector
     'portion.label': 'Порция',

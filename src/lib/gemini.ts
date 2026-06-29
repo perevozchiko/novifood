@@ -23,12 +23,22 @@ const MODELS = [
   'gemini-1.5-flash-8b',
 ] as const;
 
-const PROMPT = `Analyse the food in this photo.
+const IMAGE_PROMPT = `Analyse the food in this photo.
 Respond ONLY with a valid JSON object. Do not include markdown codeblocks, wrapping, or explanations.
 Structure:
 {"name":"Dish Name in Russian","calories":0,"protein":0,"fat":0,"carbs":0}
 All macro values must be integers representing the full portion visible in the photo.
 Calories in kcal, protein/fat/carbs in grams.`;
+
+const TEXT_PROMPT_PREFIX = `The user described a food item or meal in natural language.
+Extract the nutritional information and respond ONLY with a valid JSON object.
+Do not include markdown codeblocks, wrapping, or explanations.
+Structure:
+{"name":"Dish Name in Russian","calories":0,"protein":0,"fat":0,"carbs":0}
+All macro values must be integers for the described portion.
+Calories in kcal, protein/fat/carbs in grams.
+If weight is mentioned (e.g. "330 grams"), use it for calculations.
+User input: `;
 
 /*
   Structured error that carries an HTTP status and an optional machine-readable
@@ -98,7 +108,7 @@ async function tryModel(apiKey: string, model: string, base64Image: string): Pro
         {
           parts: [
             { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
-            { text: PROMPT },
+            { text: IMAGE_PROMPT },
           ],
         },
       ],
@@ -155,6 +165,67 @@ export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
         continue;
       }
       // Auth errors, config errors, parse failures — fatal.
+      throw err;
+    }
+  }
+
+  throw lastError ?? new GeminiError('All AI models are currently unavailable.', 429);
+}
+
+/* Send a text description to a specific model and parse the macro response. */
+async function tryModelText(apiKey: string, model: string, userText: string): Promise<FoodAnalysis> {
+  const url = `${BASE_URL}/${model}:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { text: TEXT_PROMPT_PREFIX + userText },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw parseGeminiError(response.status, errText, model);
+  }
+
+  const result = await response.json();
+  const text: string = result.candidates[0].content.parts[0].text;
+
+  const cleanJson = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(cleanJson) as FoodAnalysis;
+}
+
+/*
+  Send a natural-language food description to Gemini and parse the macro response.
+  Uses the same model fallback chain as analyzeFood.
+*/
+export async function analyzeFoodText(userText: string): Promise<FoodAnalysis> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
+
+  console.info(`analyzeFoodText: key=${apiKey.slice(0, 6)}… len=${apiKey.length}`);
+
+  let lastError: GeminiError | null = null;
+
+  for (const model of MODELS) {
+    try {
+      return await tryModelText(apiKey, model, userText);
+    } catch (err) {
+      if (err instanceof GeminiError && err.code === 'NOT_CONFIGURED') {
+        throw err;
+      }
+      if (err instanceof GeminiError && RETRYABLE_STATUSES.has(err.status)) {
+        console.warn(`Model ${model} unavailable (${err.status}), trying next model…`);
+        lastError = err;
+        continue;
+      }
       throw err;
     }
   }
