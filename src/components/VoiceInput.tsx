@@ -21,6 +21,7 @@ interface ISpeechRecognitionAlternative {
 }
 
 interface ISpeechRecognitionResult {
+  readonly isFinal: boolean;
   readonly length: number;
   item(index: number): ISpeechRecognitionAlternative;
   [index: number]: ISpeechRecognitionAlternative;
@@ -71,20 +72,40 @@ export default function VoiceInput({ onConfirm }: Props) {
   const [portion, setPortion] = useState(1);
   const [mealType, setMealType] = useState<MealType | ''>('');
   const [error, setError] = useState<string | null>(null);
+  const [isInterim, setIsInterim] = useState(false);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  const finalTranscriptRef = useRef('');
+  const interimTranscriptRef = useRef('');
 
   function getSpeechRecognition(): SpeechRecognitionCtor | undefined {
     if (typeof window === 'undefined') return undefined;
     return window.SpeechRecognition ?? window.webkitSpeechRecognition;
   }
 
-  function stopListening() {
-    recognitionRef.current?.stop();
+  function abortListening() {
+    recognitionRef.current?.abort();
     recognitionRef.current = null;
   }
 
+  function stopListening() {
+    const rec = recognitionRef.current;
+    if (!rec) return;
+
+    rec.stop();
+    recognitionRef.current = null;
+
+    const text = (finalTranscriptRef.current + interimTranscriptRef.current).trim();
+    if (text) {
+      setTranscript(text);
+      finalTranscriptRef.current = text;
+      interimTranscriptRef.current = '';
+      setIsInterim(false);
+      analyseTranscript(text);
+    }
+  }
+
   function handleReset() {
-    stopListening();
+    abortListening();
     setStatus('idle');
     setTranscript('');
     setAnalysis(null);
@@ -137,6 +158,9 @@ export default function VoiceInput({ onConfirm }: Props) {
 
     setError(null);
     setTranscript('');
+    setIsInterim(false);
+    finalTranscriptRef.current = '';
+    interimTranscriptRef.current = '';
     setAnalysis(null);
     setPortion(1);
     setMealType('');
@@ -144,15 +168,34 @@ export default function VoiceInput({ onConfirm }: Props) {
 
     const recognition = new SR();
     recognition.lang = 'ru-RU';
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognitionRef.current = recognition;
 
     recognition.onresult = (event: ISpeechRecognitionEvent) => {
-      const text = event.results[0][0].transcript;
-      setTranscript(text);
-      analyseTranscript(text);
+      let interim = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const text = result[0].transcript;
+        if (result.isFinal) {
+          finalTranscriptRef.current += text;
+        } else {
+          interim += text;
+        }
+      }
+
+      const display = finalTranscriptRef.current + interim;
+      interimTranscriptRef.current = interim;
+      setTranscript(display);
+      setIsInterim(interim.length > 0);
+
+      if (interim.length === 0 && finalTranscriptRef.current.trim()) {
+        recognition.stop();
+        recognitionRef.current = null;
+        analyseTranscript(finalTranscriptRef.current.trim());
+      }
     };
 
     recognition.onerror = (event: ISpeechRecognitionErrorEvent) => {
@@ -215,16 +258,32 @@ export default function VoiceInput({ onConfirm }: Props) {
       )}
 
       {status === 'listening' && (
-        <button
-          type="button"
-          onClick={stopListening}
-          className="w-full flex items-center justify-center gap-2 border-2 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 rounded-2xl py-3 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-        >
-          <MicOff size={18} className="animate-pulse" />
-          <span>{t('voice.listening')}</span>
-          <StopCircle size={16} className="ml-1 opacity-70" />
-          <span className="text-xs opacity-60">{t('voice.stop')}</span>
-        </button>
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={stopListening}
+            className="w-full flex items-center justify-center gap-2 border-2 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 rounded-2xl py-3 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+          >
+            <MicOff size={18} className="animate-pulse" />
+            <span>{t('voice.listening')}</span>
+            <StopCircle size={16} className="ml-1 opacity-70" />
+            <span className="text-xs opacity-60">{t('voice.stop')}</span>
+          </button>
+          <div
+            className="min-h-[2.5rem] rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 px-3 py-2"
+            aria-live="polite"
+          >
+            {transcript ? (
+              <p className={`text-sm ${isInterim ? 'text-gray-500 dark:text-gray-400 italic' : 'text-gray-800 dark:text-gray-200'}`}>
+                {transcript}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                {t('voice.speakNow')}
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
       {status === 'analysing' && (

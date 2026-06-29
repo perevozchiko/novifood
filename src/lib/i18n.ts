@@ -84,6 +84,7 @@ const dictionaries = {
     // VoiceInput
     'voice.button': 'Voice input',
     'voice.listening': 'Listening…',
+    'voice.speakNow': 'Start speaking…',
     'voice.analysing': 'Analysing…',
     'voice.transcript': 'You said:',
     'voice.confirm': 'Add to diary',
@@ -287,6 +288,7 @@ const dictionaries = {
     // VoiceInput
     'voice.button': 'Голосовой ввод',
     'voice.listening': 'Слушаю…',
+    'voice.speakNow': 'Начните говорить…',
     'voice.analysing': 'Анализирую…',
     'voice.transcript': 'Вы сказали:',
     'voice.confirm': 'Добавить в дневник',
