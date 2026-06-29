@@ -72,12 +72,14 @@ export default function SettingsClient({ settings }: Props) {
     setDeleting(true);
     setDeleteError(null);
     try {
-      const results = await Promise.all([
+      const [mealsResult, weightResult] = await Promise.all([
         supabaseBrowser.from('meals').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabaseBrowser.from('weight').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        // water_intake may not exist if migration 0002 has not been applied yet —
+        // ignore its error so the rest of the delete still succeeds.
         supabaseBrowser.from('water_intake').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
       ]);
-      if (results.some((r) => r.error)) throw new Error('delete failed');
+      if (mealsResult.error || weightResult.error) throw new Error('delete failed');
       setDeleteSuccess(true);
       setShowDeleteConfirm(false);
     } catch {
