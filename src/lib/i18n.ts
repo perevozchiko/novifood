@@ -96,6 +96,7 @@ const dictionaries = {
     'voice.errorDailyLimit': 'Daily AI limit reached (50 analyses). Resets at midnight UTC.',
     'voice.errorNotConfigured': 'AI recognition is not available. The administrator needs to configure the API key.',
     'voice.errorSave': 'Failed to save.',
+    'voice.stop': 'Stop',
 
     // PortionSelector
     'portion.label': 'Portion',
@@ -298,6 +299,7 @@ const dictionaries = {
     'voice.errorDailyLimit': 'Дневной лимит ИИ исчерпан (50 анализов). Сбрасывается в полночь по UTC.',
     'voice.errorNotConfigured': 'Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ.',
     'voice.errorSave': 'Не удалось сохранить.',
+    'voice.stop': 'Стоп',
 
     // PortionSelector
     'portion.label': 'Порция',
