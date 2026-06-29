@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Mic, MicOff, Loader2, StopCircle } from 'lucide-react';
 import PortionSelector from './PortionSelector';
 import type { FoodAnalysis, Meal, MealType } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
@@ -71,13 +71,20 @@ export default function VoiceInput({ onConfirm }: Props) {
   const [portion, setPortion] = useState(1);
   const [mealType, setMealType] = useState<MealType | ''>('');
   const [error, setError] = useState<string | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
 
   function getSpeechRecognition(): SpeechRecognitionCtor | undefined {
     if (typeof window === 'undefined') return undefined;
     return window.SpeechRecognition ?? window.webkitSpeechRecognition;
   }
 
+  function stopListening() {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+  }
+
   function handleReset() {
+    stopListening();
     setStatus('idle');
     setTranscript('');
     setAnalysis(null);
@@ -140,6 +147,8 @@ export default function VoiceInput({ onConfirm }: Props) {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
+    recognitionRef.current = recognition;
+
     recognition.onresult = (event: ISpeechRecognitionEvent) => {
       const text = event.results[0][0].transcript;
       setTranscript(text);
@@ -147,6 +156,7 @@ export default function VoiceInput({ onConfirm }: Props) {
     };
 
     recognition.onerror = (event: ISpeechRecognitionErrorEvent) => {
+      recognitionRef.current = null;
       if (event.error === 'no-speech') {
         setError(t('voice.errorNoSpeech'));
       } else if (event.error === 'not-allowed') {
@@ -158,7 +168,8 @@ export default function VoiceInput({ onConfirm }: Props) {
     };
 
     recognition.onend = () => {
-      /* If still listening when recognition ends without result, reset. */
+      recognitionRef.current = null;
+      /* If still listening when recognition ends without result, reset to idle. */
       setStatus((prev) => (prev === 'listening' ? 'idle' : prev));
     };
 
@@ -204,10 +215,16 @@ export default function VoiceInput({ onConfirm }: Props) {
       )}
 
       {status === 'listening' && (
-        <div className="flex items-center justify-center gap-2 py-4 text-sm text-blue-600 dark:text-blue-400">
+        <button
+          type="button"
+          onClick={stopListening}
+          className="w-full flex items-center justify-center gap-2 border-2 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 rounded-2xl py-3 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+        >
           <MicOff size={18} className="animate-pulse" />
-          {t('voice.listening')}
-        </div>
+          <span>{t('voice.listening')}</span>
+          <StopCircle size={16} className="ml-1 opacity-70" />
+          <span className="text-xs opacity-60">{t('voice.stop')}</span>
+        </button>
       )}
 
       {status === 'analysing' && (
