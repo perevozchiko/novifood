@@ -13,14 +13,24 @@ import type { FoodAnalysis } from '@/types';
 
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
+function geminiHeaders(apiKey: string): HeadersInit {
+  return {
+    'Content-Type': 'application/json',
+  // Auth keys (AQ.…) require the header; legacy AIza keys work with both.
+    'x-goog-api-key': apiKey,
+  };
+}
+
 /*
   Fallback chain: primary model first, then progressively lighter models.
   Each has a separate RPM / RPD quota so a 429 on one does not affect others.
 */
 const MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash-lite',
   'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b',
+  'gemini-2.5-flash-lite',
+  'gemini-flash-latest',
 ] as const;
 
 const IMAGE_PROMPT = `Analyse the food in this photo.
@@ -67,13 +77,12 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
 
     if (status === 429) {
       /*
-        "limit: 0" in the Gemini error message means the Google Cloud project
-        has zero quota configured — this is a billing/setup issue, not exhaustion.
-        Retrying or waiting will not help; the developer must:
-          1. Create an API key via https://aistudio.google.com/apikey (not Cloud Console)
-          2. Or enable billing on the Google Cloud project to unlock free-tier quota.
+        "limit: 0" without a model name usually means the Cloud project has no
+        quota at all (wrong key source or billing not set up).
+        "limit: 0, model: …" means this specific model has no free-tier quota —
+        try the next model in the fallback chain.
       */
-      if (raw.includes('limit: 0')) {
+      if (raw.includes('limit: 0') && !/model:\s*[\w.-]+/i.test(raw)) {
         return new GeminiError(
           'Gemini API not configured: quota is 0. ' +
           'Create a new API key at aistudio.google.com/apikey and update GEMINI_API_KEY in your deployment.',
@@ -96,13 +105,27 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
   }
 }
 
+/* Extract text from a generateContent response or throw a structured error. */
+function extractResponseText(result: unknown, model: string): string {
+  const candidates = (result as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
+    ?.candidates;
+  const text = candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!text) {
+    console.error(`Gemini empty response [${model}]:`, JSON.stringify(result).slice(0, 500));
+    throw new GeminiError('Gemini returned an empty response.', 502, 'EMPTY_RESPONSE');
+  }
+
+  return text;
+}
+
 /* Send a base64-encoded JPEG to a specific model and parse the macro response. */
 async function tryModel(apiKey: string, model: string, base64Image: string): Promise<FoodAnalysis> {
-  const url = `${BASE_URL}/${model}:generateContent?key=${apiKey}`;
+  const url = `${BASE_URL}/${model}:generateContent`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: geminiHeaders(apiKey),
     body: JSON.stringify({
       contents: [
         {
@@ -121,7 +144,7 @@ async function tryModel(apiKey: string, model: string, base64Image: string): Pro
   }
 
   const result = await response.json();
-  const text: string = result.candidates[0].content.parts[0].text;
+  const text = extractResponseText(result, model);
 
   // Strip accidental markdown fences that some model versions include.
   const cleanJson = text.replace(/```json|```/g, '').trim();
@@ -174,11 +197,11 @@ export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
 
 /* Send a text description to a specific model and parse the macro response. */
 async function tryModelText(apiKey: string, model: string, userText: string): Promise<FoodAnalysis> {
-  const url = `${BASE_URL}/${model}:generateContent?key=${apiKey}`;
+  const url = `${BASE_URL}/${model}:generateContent`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: geminiHeaders(apiKey),
     body: JSON.stringify({
       contents: [
         {
@@ -196,7 +219,7 @@ async function tryModelText(apiKey: string, model: string, userText: string): Pr
   }
 
   const result = await response.json();
-  const text: string = result.candidates[0].content.parts[0].text;
+  const text = extractResponseText(result, model);
 
   const cleanJson = text.replace(/```json|```/g, '').trim();
   return JSON.parse(cleanJson) as FoodAnalysis;

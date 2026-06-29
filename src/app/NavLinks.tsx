@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { href: '/history', labelKey: 'nav.history' as const, icon: '📅' },
   { href: '/weight', labelKey: 'nav.weight' as const, icon: '⚖️' },
   { href: '/stats', labelKey: 'nav.stats' as const, icon: '📊' },
-  { href: '/settings', labelKey: 'nav.goals' as const, icon: '⚙️' },
+  { href: '/settings', labelKey: 'nav.settings' as const, icon: '⚙️' },
 ];
 
 export default function NavLinks({ variant }: Props) {

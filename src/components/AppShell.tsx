@@ -22,7 +22,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     { href: '/', icon: '🥗', labelKey: 'nav.diary' as const },
     { href: '/history', icon: '📅', labelKey: 'nav.history' as const },
     { href: '/weight', icon: '⚖️', labelKey: 'nav.weight' as const },
-    { href: '/settings', icon: '⚙️', labelKey: 'nav.goals' as const },
+    { href: '/settings', icon: '⚙️', labelKey: 'nav.settings' as const },
   ];
 
   const ThemeIcon = theme === 'dark' ? Sun : Moon;

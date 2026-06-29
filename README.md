@@ -17,7 +17,7 @@ GEMINI_API_KEY=AIzaSy...
 ```
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from Supabase project → Settings → API.
-- `GEMINI_API_KEY` — create at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (**not** Google Cloud Console). Must start with `AIza`.
+- `GEMINI_API_KEY` — create at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (**not** Google Cloud Console). Valid formats: `AIzaSy…` (legacy) or `AQ.Ab…` (auth key, default since 2026).
 
 > For Vercel: add all three variables under Project → Settings → Environment Variables, then redeploy.
 

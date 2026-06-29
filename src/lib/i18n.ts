@@ -16,7 +16,7 @@ const dictionaries = {
     'nav.diary': 'Diary',
     'nav.history': 'History',
     'nav.weight': 'Weight',
-    'nav.goals': 'Goals',
+    'nav.settings': 'Settings',
 
     // Home / Diary
     'diary.empty': 'No entries today',
@@ -219,7 +219,7 @@ const dictionaries = {
     'nav.diary': 'Дневник',
     'nav.history': 'История',
     'nav.weight': 'Вес',
-    'nav.goals': 'Цели',
+    'nav.settings': 'Настройки',
 
     // Home / Diary
     'diary.empty': 'Записей за сегодня нет',

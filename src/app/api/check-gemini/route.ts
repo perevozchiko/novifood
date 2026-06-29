@@ -23,18 +23,24 @@ export async function GET() {
     );
   }
 
-  // Expose only the first 6 chars + length so the log is safe to share.
+  // Google AI Studio issues two key formats:
+  // - Legacy standard keys: AIzaSy… (~39 chars)
+  // - Auth keys (default since 2026): AQ.Ab… (~50+ chars)
+  const isLegacyKey = apiKey.startsWith('AIza') && apiKey.length >= 35;
+  const isAuthKey = apiKey.startsWith('AQ.') && apiKey.length >= 40;
+
   const keyInfo = {
     prefix: apiKey.slice(0, 6) + '…',
     length: apiKey.length,
-    looksValid: apiKey.startsWith('AIza') && apiKey.length >= 35,
+    keyType: isAuthKey ? 'auth' : isLegacyKey ? 'standard' : 'unknown',
+    looksValid: isLegacyKey || isAuthKey,
   };
 
   if (!keyInfo.looksValid) {
     return NextResponse.json(
       {
         status: 'error',
-        issue: 'Key format looks wrong (expected "AIza…", length ≥ 35)',
+        issue: 'Key format looks wrong (expected "AIza…" or "AQ.…")',
         keyInfo,
         hint: 'Go to aistudio.google.com/apikey, create a new key, and copy the full value.',
       },
@@ -45,7 +51,8 @@ export async function GET() {
   // models.list is a read-only call — does not consume generative quota.
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models',
+      { headers: { 'x-goog-api-key': apiKey } },
     );
 
     if (!res.ok) {
