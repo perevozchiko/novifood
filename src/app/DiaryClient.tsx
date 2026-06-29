@@ -78,7 +78,7 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
         )}
       </div>
 
-      <WaterTracker initialEntries={initialWater} goalMl={settings.water_goal_ml} />
+      <WaterTracker initialEntries={initialWater} goalMl={settings.water_goal_ml ?? 2000} />
 
       <div className="space-y-3 mt-6">
         <CameraUpload onConfirm={handleAdd} />

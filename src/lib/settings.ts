@@ -17,7 +17,13 @@ export async function getSettings(): Promise<Settings> {
     .single();
 
   if (error) throw error;
-  return data;
+
+  // water_goal_ml was added in migration 0002. Guard against databases where
+  // that migration has not yet been applied so the UI never shows "undefined".
+  return {
+    ...data,
+    water_goal_ml: data.water_goal_ml ?? 2000,
+  };
 }
 
 /* Patch goal values. Returns the updated record. */

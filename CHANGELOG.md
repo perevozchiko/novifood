@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-29 (fix — water_goal_ml defensive fallback)
+
+Fixed:
+
+- `getSettings()` now returns `water_goal_ml: 2000` as a fallback when the column is missing (migration 0002 not yet applied). Previously the value was `undefined`, causing the Water tracker to display "0 / undefined мл" and making goal calculations crash silently.
+- `DiaryClient` passes `settings.water_goal_ml ?? 2000` to `WaterTracker` as an additional guard.
+- `README.md` updated with a complete setup section: environment variables, all three required database migrations, and a troubleshooting table mapping each missing migration/env var to the visible error.
+
 ## 2026-06-29
 
 Added:
