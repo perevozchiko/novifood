@@ -1,9 +1,10 @@
 # Changelog
 
-## 2026-06-29 (fix — water_goal_ml defensive fallback)
+## 2026-06-29 (fix — delete-all failure + water_goal_ml defensive fallback)
 
 Fixed:
 
+- "Delete all data" modal showed "Failed to delete data. Try again." when migration 0002 had not been applied: the `water_intake` delete failed because the table did not exist, and the error was treated as fatal. Now only `meals` and `weight` delete errors are considered fatal; a missing `water_intake` table is silently ignored (no rows to delete).
 - `getSettings()` now returns `water_goal_ml: 2000` as a fallback when the column is missing (migration 0002 not yet applied). Previously the value was `undefined`, causing the Water tracker to display "0 / undefined мл" and making goal calculations crash silently.
 - `DiaryClient` passes `settings.water_goal_ml ?? 2000` to `WaterTracker` as an additional guard.
 - `README.md` updated with a complete setup section: environment variables, all three required database migrations, and a troubleshooting table mapping each missing migration/env var to the visible error.
