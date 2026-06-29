@@ -13,6 +13,7 @@ import MacroSummary from '@/components/MacroSummary';
 import MealCard from '@/components/MealCard';
 import AddMealForm from '@/components/AddMealForm';
 import CameraUpload from '@/components/CameraUpload';
+import VoiceInput from '@/components/VoiceInput';
 import WaterTracker from '@/components/WaterTracker';
 import { addMeal, deleteMeal, updateMeal } from '@/lib/meals';
 import type { Meal, Settings, WaterIntake } from '@/types';
@@ -81,6 +82,7 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
 
       <div className="space-y-3 mt-6">
         <CameraUpload onConfirm={handleAdd} />
+        <VoiceInput onConfirm={handleAdd} />
         <AddMealForm onAdd={handleAdd} />
       </div>
     </>
