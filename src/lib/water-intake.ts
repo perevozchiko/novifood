@@ -11,10 +11,21 @@ import type { WaterIntake } from '@/types';
 
 /* Fetch all water entries for a specific calendar date (YYYY-MM-DD). */
 export async function getWaterByDate(dateStr: string): Promise<WaterIntake[]> {
+  return getWaterByDateFrom(supabaseServer, dateStr);
+}
+
+export async function getWaterByDateBrowser(dateStr: string): Promise<WaterIntake[]> {
+  return getWaterByDateFrom(supabaseBrowser, dateStr);
+}
+
+async function getWaterByDateFrom(
+  client: typeof supabaseServer,
+  dateStr: string,
+): Promise<WaterIntake[]> {
   const from = `${dateStr}T00:00:00.000Z`;
   const to = `${dateStr}T23:59:59.999Z`;
 
-  const { data, error } = await supabaseServer
+  const { data, error } = await client
     .from('water_intake')
     .select('*')
     .gte('logged_at', from)

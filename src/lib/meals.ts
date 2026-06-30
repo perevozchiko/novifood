@@ -11,10 +11,22 @@ import type { Meal } from '@/types';
 
 /* Fetch all meals for a specific calendar date (YYYY-MM-DD). */
 export async function getMealsByDate(dateStr: string): Promise<Meal[]> {
+  return getMealsByDateFrom(supabaseServer, dateStr);
+}
+
+/* Browser variant for client-side tab navigation. */
+export async function getMealsByDateBrowser(dateStr: string): Promise<Meal[]> {
+  return getMealsByDateFrom(supabaseBrowser, dateStr);
+}
+
+async function getMealsByDateFrom(
+  client: typeof supabaseServer,
+  dateStr: string,
+): Promise<Meal[]> {
   const from = `${dateStr}T00:00:00.000Z`;
   const to = `${dateStr}T23:59:59.999Z`;
 
-  const { data, error } = await supabaseServer
+  const { data, error } = await client
     .from('meals')
     .select('*')
     .gte('eaten_at', from)
@@ -32,7 +44,19 @@ export async function getMealsByDate(dateStr: string): Promise<Meal[]> {
   Used by the weekly stats page to aggregate multiple days at once.
 */
 export async function getMealsByDateRange(from: string, to: string): Promise<Meal[]> {
-  const { data, error } = await supabaseServer
+  return getMealsByDateRangeFrom(supabaseServer, from, to);
+}
+
+export async function getMealsByDateRangeBrowser(from: string, to: string): Promise<Meal[]> {
+  return getMealsByDateRangeFrom(supabaseBrowser, from, to);
+}
+
+async function getMealsByDateRangeFrom(
+  client: typeof supabaseServer,
+  from: string,
+  to: string,
+): Promise<Meal[]> {
+  const { data, error } = await client
     .from('meals')
     .select('*')
     .gte('eaten_at', `${from}T00:00:00.000Z`)
@@ -99,7 +123,15 @@ export function computeStreak(loggedDates: string[]): number {
   ordered descending. Used by the streak calculation on the home page.
 */
 export async function getMealDates(): Promise<string[]> {
-  const { data, error } = await supabaseServer
+  return getMealDatesFrom(supabaseServer);
+}
+
+export async function getMealDatesBrowser(): Promise<string[]> {
+  return getMealDatesFrom(supabaseBrowser);
+}
+
+async function getMealDatesFrom(client: typeof supabaseServer): Promise<string[]> {
+  const { data, error } = await client
     .from('meals')
     .select('eaten_at')
     .order('eaten_at', { ascending: false });

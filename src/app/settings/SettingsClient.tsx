@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { Sun, Moon, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { updateSettings } from '@/lib/settings';
+import { setCached } from '@/lib/client-cache';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { exportMealsCsv, exportWeightCsv } from '@/lib/export-csv';
 import type { Settings } from '@/types';
@@ -101,7 +102,8 @@ export default function SettingsClient({ settings }: Props) {
     setError(null);
     setSaved(false);
     try {
-      await updateSettings(form);
+      const updated = await updateSettings(form);
+      setCached('settings', updated);
       setSaved(true);
     } catch {
       setError(t('settings.errorSave'));

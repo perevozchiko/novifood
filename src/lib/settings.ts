@@ -8,7 +8,14 @@ import type { Settings } from '@/types';
   The settings table always contains exactly one row with id = 1.
 */
 
-/* Read the single settings row. */
+function normalizeSettings(data: Settings): Settings {
+  return {
+    ...data,
+    water_goal_ml: data.water_goal_ml ?? 2000,
+  };
+}
+
+/* Read the single settings row (server). */
 export async function getSettings(): Promise<Settings> {
   const { data, error } = await supabaseServer
     .from('settings')
@@ -17,13 +24,19 @@ export async function getSettings(): Promise<Settings> {
     .single();
 
   if (error) throw error;
+  return normalizeSettings(data);
+}
 
-  // water_goal_ml was added in migration 0002. Guard against databases where
-  // that migration has not yet been applied so the UI never shows "undefined".
-  return {
-    ...data,
-    water_goal_ml: data.water_goal_ml ?? 2000,
-  };
+/* Read settings from the browser client (tab cache / SPA navigation). */
+export async function getSettingsBrowser(): Promise<Settings> {
+  const { data, error } = await supabaseBrowser
+    .from('settings')
+    .select('*')
+    .eq('id', 1)
+    .single();
+
+  if (error) throw error;
+  return normalizeSettings(data);
 }
 
 /* Patch goal values. Returns the updated record. */
