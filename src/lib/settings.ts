@@ -1,11 +1,10 @@
-import { supabaseServer } from './supabase-server';
 import { supabaseBrowser } from './supabase-browser';
 import type { Settings } from '@/types';
 
 /*
-  Read/write daily macro goals.
+  Read/write daily macro goals (browser client).
 
-  The settings table always contains exactly one row with id = 1.
+  Each authenticated user has exactly one settings row keyed by user_id.
 */
 
 function normalizeSettings(data: Settings): Settings {
@@ -15,39 +14,33 @@ function normalizeSettings(data: Settings): Settings {
   };
 }
 
-/* Read the single settings row (server). */
-export async function getSettings(): Promise<Settings> {
-  const { data, error } = await supabaseServer
-    .from('settings')
-    .select('*')
-    .eq('id', 1)
-    .single();
-
-  if (error) throw error;
-  return normalizeSettings(data);
-}
-
-/* Read settings from the browser client (tab cache / SPA navigation). */
 export async function getSettingsBrowser(): Promise<Settings> {
+  const { data: { user } } = await supabaseBrowser.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
   const { data, error } = await supabaseBrowser
     .from('settings')
     .select('*')
-    .eq('id', 1)
+    .eq('user_id', user.id)
     .single();
 
   if (error) throw error;
   return normalizeSettings(data);
 }
 
-/* Patch goal values. Returns the updated record. */
 export async function updateSettings(updates: Partial<Settings>): Promise<Settings> {
+  const { data: { user } } = await supabaseBrowser.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { user_id: _userId, ...fields } = updates;
+
   const { data, error } = await supabaseBrowser
     .from('settings')
-    .update(updates)
-    .eq('id', 1)
+    .update(fields)
+    .eq('user_id', user.id)
     .select()
     .single();
 
   if (error) throw error;
-  return data;
+  return normalizeSettings(data);
 }

@@ -1,21 +1,16 @@
-import { supabaseServer } from './supabase-server';
 import { supabaseBrowser } from './supabase-browser';
 import type { Weight } from '@/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /*
-  CRUD operations for body-weight log entries.
+  CRUD operations for body-weight log entries (browser client).
 */
-
-/* Fetch all weight records sorted by date ascending. */
-export async function getWeightHistory(): Promise<Weight[]> {
-  return getWeightHistoryFrom(supabaseServer);
-}
 
 export async function getWeightHistoryBrowser(): Promise<Weight[]> {
   return getWeightHistoryFrom(supabaseBrowser);
 }
 
-async function getWeightHistoryFrom(client: typeof supabaseServer): Promise<Weight[]> {
+async function getWeightHistoryFrom(client: SupabaseClient): Promise<Weight[]> {
   const { data, error } = await client
     .from('weight')
     .select('*')

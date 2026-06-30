@@ -14,7 +14,7 @@ export interface Meal {
 }
 
 export interface Settings {
-  id: 1;
+  user_id: string;
   calorie_goal: number;
   protein_goal: number;
   fat_goal: number;

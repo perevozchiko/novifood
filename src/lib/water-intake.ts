@@ -1,25 +1,17 @@
-import { supabaseServer } from './supabase-server';
 import { supabaseBrowser } from './supabase-browser';
 import type { WaterIntake } from '@/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /*
-  CRUD operations for daily water intake entries.
-
-  getWaterByDate runs server-side (Server Components).
-  addWaterIntake / deleteWaterIntake run client-side.
+  CRUD operations for daily water intake entries (browser client).
 */
-
-/* Fetch all water entries for a specific calendar date (YYYY-MM-DD). */
-export async function getWaterByDate(dateStr: string): Promise<WaterIntake[]> {
-  return getWaterByDateFrom(supabaseServer, dateStr);
-}
 
 export async function getWaterByDateBrowser(dateStr: string): Promise<WaterIntake[]> {
   return getWaterByDateFrom(supabaseBrowser, dateStr);
 }
 
 async function getWaterByDateFrom(
-  client: typeof supabaseServer,
+  client: SupabaseClient,
   dateStr: string,
 ): Promise<WaterIntake[]> {
   const from = `${dateStr}T00:00:00.000Z`;

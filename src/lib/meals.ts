@@ -1,26 +1,18 @@
-import { supabaseServer } from './supabase-server';
 import { supabaseBrowser } from './supabase-browser';
 import type { Meal } from '@/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /*
-  CRUD operations for meal entries.
-
-  getMealsByDate / getMealsByDateRange run server-side (Server Components).
-  addMeal / updateMeal / deleteMeal / getRecentMeals run client-side.
+  CRUD operations for meal entries (browser client).
 */
 
 /* Fetch all meals for a specific calendar date (YYYY-MM-DD). */
-export async function getMealsByDate(dateStr: string): Promise<Meal[]> {
-  return getMealsByDateFrom(supabaseServer, dateStr);
-}
-
-/* Browser variant for client-side tab navigation. */
 export async function getMealsByDateBrowser(dateStr: string): Promise<Meal[]> {
   return getMealsByDateFrom(supabaseBrowser, dateStr);
 }
 
 async function getMealsByDateFrom(
-  client: typeof supabaseServer,
+  client: SupabaseClient,
   dateStr: string,
 ): Promise<Meal[]> {
   const from = `${dateStr}T00:00:00.000Z`;
@@ -43,16 +35,12 @@ async function getMealsByDateFrom(
   Both `from` and `to` are YYYY-MM-DD strings.
   Used by the weekly stats page to aggregate multiple days at once.
 */
-export async function getMealsByDateRange(from: string, to: string): Promise<Meal[]> {
-  return getMealsByDateRangeFrom(supabaseServer, from, to);
-}
-
 export async function getMealsByDateRangeBrowser(from: string, to: string): Promise<Meal[]> {
   return getMealsByDateRangeFrom(supabaseBrowser, from, to);
 }
 
 async function getMealsByDateRangeFrom(
-  client: typeof supabaseServer,
+  client: SupabaseClient,
   from: string,
   to: string,
 ): Promise<Meal[]> {
@@ -122,15 +110,11 @@ export function computeStreak(loggedDates: string[]): number {
   Fetch all distinct calendar days that have at least one meal entry,
   ordered descending. Used by the streak calculation on the home page.
 */
-export async function getMealDates(): Promise<string[]> {
-  return getMealDatesFrom(supabaseServer);
-}
-
 export async function getMealDatesBrowser(): Promise<string[]> {
   return getMealDatesFrom(supabaseBrowser);
 }
 
-async function getMealDatesFrom(client: typeof supabaseServer): Promise<string[]> {
+async function getMealDatesFrom(client: SupabaseClient): Promise<string[]> {
   const { data, error } = await client
     .from('meals')
     .select('eaten_at')
