@@ -191,6 +191,19 @@ const dictionaries = {
     'settings.deleteAll.confirm': 'Yes, delete everything',
     'settings.deleteAll.cancel': 'Cancel',
 
+    // Auth
+    'auth.email': 'Email',
+    'auth.password': 'Password',
+    'auth.login': 'Sign in',
+    'auth.signup': 'Sign up',
+    'auth.loading': 'Please wait…',
+    'auth.loginSubtitle': 'Sign in to your diary',
+    'auth.adminOnly': 'Accounts are created by the administrator.',
+    'auth.errorGeneric': 'Authentication failed. Please try again.',
+    'auth.rememberMe': 'Remember me',
+    'settings.account': 'Account',
+    'settings.logout': 'Sign out',
+
     // History search
     'history.search': 'Search meals…',
     'history.searchEmpty': 'No meals match "{0}"',
@@ -406,6 +419,19 @@ const dictionaries = {
     'settings.deleteAll.warning': 'Это действие навсегда удалит все записи о питании, весе и потреблении воды. Отменить это действие невозможно.',
     'settings.deleteAll.confirm': 'Да, удалить всё',
     'settings.deleteAll.cancel': 'Отмена',
+
+    // Auth
+    'auth.email': 'Email',
+    'auth.password': 'Пароль',
+    'auth.login': 'Войти',
+    'auth.signup': 'Регистрация',
+    'auth.loading': 'Подождите…',
+    'auth.loginSubtitle': 'Войдите в свой дневник',
+    'auth.adminOnly': 'Аккаунты создаёт администратор.',
+    'auth.errorGeneric': 'Ошибка входа. Попробуйте снова.',
+    'auth.rememberMe': 'Запомнить меня',
+    'settings.account': 'Аккаунт',
+    'settings.logout': 'Выйти',
 
     // History search
     'history.search': 'Поиск по блюдам…',

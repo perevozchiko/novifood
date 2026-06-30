@@ -9,7 +9,8 @@
 */
 
 import { useState } from 'react';
-import { Sun, Moon, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Sun, Moon, Download, Trash2, AlertTriangle, LogOut } from 'lucide-react';
 import { updateSettings } from '@/lib/settings';
 import { setCached } from '@/lib/client-cache';
 import { supabaseBrowser } from '@/lib/supabase-browser';
@@ -26,6 +27,7 @@ interface Props {
 export default function SettingsClient({ settings }: Props) {
   const { t, locale, setLocale } = useT();
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
   const { version, needRefresh, checking, applyUpdate, checkForUpdate, supported } = usePwaUpdate();
 
   const [form, setForm] = useState({
@@ -44,6 +46,18 @@ export default function SettingsClient({ settings }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await supabaseBrowser.auth.signOut();
+      router.push('/login');
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   async function handleExportMeals() {
     setExportingMeals(true);
@@ -286,6 +300,25 @@ export default function SettingsClient({ settings }: Props) {
             {exportingWeight ? t('settings.export.loading') : t('settings.export.weight')}
           </span>
           <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+        </button>
+      </div>
+
+      {/* ── Account ── */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 px-1">
+          {t('settings.account')}
+        </h2>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+        >
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {loggingOut ? t('auth.loading') : t('settings.logout')}
+          </span>
+          <LogOut size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
         </button>
       </div>
 
