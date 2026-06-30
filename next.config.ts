@@ -11,6 +11,7 @@ const gitHash = (() => {
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  devIndicators: false,
   env: {
     NEXT_PUBLIC_APP_VERSION: '0.1.0',
     NEXT_PUBLIC_GIT_HASH: gitHash,

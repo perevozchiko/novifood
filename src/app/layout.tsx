@@ -48,8 +48,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             {/* Desktop layout: sidebar + content; Mobile: content + bottom nav */}
             <div className="flex min-h-screen">
 
-              {/* Desktop sidebar (md+) */}
-              <aside className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:left-0 md:bg-white md:dark:bg-gray-800 md:border-r md:border-gray-200 md:dark:border-gray-700 md:z-10">
+              {/* Desktop sidebar (md+) — in flex flow so main content centers in the remaining width */}
+              <aside className="hidden md:flex md:flex-col md:w-56 md:flex-none md:shrink-0 md:bg-white md:dark:bg-gray-800 md:border-r md:border-gray-200 md:dark:border-gray-700">
                 <div className="flex flex-col flex-1 px-4 py-6">
                   <div className="mb-8">
                     <h1 className="text-xl font-bold text-green-700 dark:text-green-400">NoviFood</h1>
@@ -62,9 +62,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 </div>
               </aside>
 
-              {/* Page content */}
-              <main className="flex-1 md:ml-56 max-w-lg mx-auto w-full px-4 pb-24 md:pb-8">
-                {children}
+              {/* Page content — centered column within the area right of the sidebar */}
+              <main className="flex-1 min-w-0">
+                <div className="max-w-lg mx-auto w-full px-4 pb-24 md:pb-8">
+                  {children}
+                </div>
               </main>
             </div>
 
