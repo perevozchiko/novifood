@@ -11,6 +11,7 @@ import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
+import { PwaUpdateProvider } from '@/providers/PwaUpdateProvider';
 import type { Locale as Lang } from '@/lib/i18n';
 
 interface Options {
@@ -20,7 +21,9 @@ interface Options {
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <LanguageProvider>{children}</LanguageProvider>
+      <LanguageProvider>
+        <PwaUpdateProvider>{children}</PwaUpdateProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

@@ -16,6 +16,7 @@ import { supabaseBrowser } from '@/lib/supabase-browser';
 import { exportMealsCsv, exportWeightCsv } from '@/lib/export-csv';
 import type { Settings } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
+import { usePwaUpdate } from '@/providers/PwaUpdateProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
 export default function SettingsClient({ settings }: Props) {
   const { t, locale, setLocale } = useT();
   const { theme, toggleTheme } = useTheme();
+  const { version, needRefresh, checking, applyUpdate, checkForUpdate, supported } = usePwaUpdate();
 
   const [form, setForm] = useState({
     calorie_goal: settings.calorie_goal,
@@ -119,9 +121,6 @@ export default function SettingsClient({ settings }: Props) {
     { key: 'carbs_goal', labelKey: 'settings.carbs', unitKey: 'settings.g' },
     { key: 'water_goal_ml', labelKey: 'settings.waterGoal', unitKey: 'settings.waterMl' },
   ];
-
-  const version = process.env.NEXT_PUBLIC_APP_VERSION;
-  const gitHash = process.env.NEXT_PUBLIC_GIT_HASH;
 
   return (
     <div className="space-y-6 pt-6 pb-8">
@@ -220,14 +219,42 @@ export default function SettingsClient({ settings }: Props) {
           </div>
         </div>
 
-        {/* Version */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        {/* Version / PWA update */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm space-y-3">
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {t('settings.version')}
           </span>
-          <span className="text-sm text-gray-400 dark:text-gray-500 font-mono">
-            v{version} ({gitHash})
-          </span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {t('update.current')}:{' '}
+              <span className="font-mono text-gray-700 dark:text-gray-300">{version}</span>
+            </span>
+            {supported &&
+              (needRefresh ? (
+                <button
+                  type="button"
+                  onClick={applyUpdate}
+                  className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+                >
+                  {t('update.now')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={checkForUpdate}
+                  disabled={checking}
+                  className="shrink-0 border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  {checking ? t('update.checking') : t('update.check')}
+                </button>
+              ))}
+          </div>
+          {supported && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {needRefresh ? t('update.available') : t('update.latest')}
+            </p>
+          )}
+          <p className="text-xs text-gray-400 dark:text-gray-500">{t('settings.pwaHint')}</p>
         </div>
       </div>
 

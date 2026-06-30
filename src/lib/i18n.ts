@@ -166,6 +166,14 @@ const dictionaries = {
     'settings.theme.dark': 'Dark',
     'settings.language': 'Language',
     'settings.version': 'Version',
+    'settings.pwaHint': 'Install the app via your browser menu → “Add to Home Screen”.',
+    'update.current': 'Current version',
+    'update.check': 'Check for updates',
+    'update.checking': 'Checking…',
+    'update.latest': 'You have the latest version.',
+    'update.available': 'Update available',
+    'update.now': 'Update',
+    'update.later': 'Later',
 
     // Settings — data export section
     'settings.data': 'Data',
@@ -374,6 +382,14 @@ const dictionaries = {
     'settings.theme.dark': 'Тёмная',
     'settings.language': 'Язык',
     'settings.version': 'Версия',
+    'settings.pwaHint': 'Установите приложение через меню браузера → «На экран „Домой“».',
+    'update.current': 'Текущая версия',
+    'update.check': 'Проверить обновления',
+    'update.checking': 'Проверка…',
+    'update.latest': 'Установлена последняя версия.',
+    'update.available': 'Доступно обновление',
+    'update.now': 'Обновить',
+    'update.later': 'Позже',
 
     // Settings — data export section
     'settings.data': 'Данные',

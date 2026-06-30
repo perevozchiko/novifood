@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
+import { PwaUpdateProvider } from '@/providers/PwaUpdateProvider';
+import UpdatePrompt from '@/components/UpdatePrompt';
 import ThemeToggle from './ThemeToggle';
 import LangToggle from './LangToggle';
 import NavLinks from './NavLinks';
@@ -33,13 +35,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="theme-color" content="#ffffff" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('theme');var dark=t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#1f2937');}var l=localStorage.getItem('lang');if(l==='en'||l==='ru')document.documentElement.lang=l;})();if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js');});}`,
+            __html: `(function(){var t=localStorage.getItem('theme');var dark=t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#1f2937');}var l=localStorage.getItem('lang');if(l==='en'||l==='ru')document.documentElement.lang=l;})();`,
           }}
         />
       </head>
       <body className="min-h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <ThemeProvider>
           <LanguageProvider>
+            <PwaUpdateProvider>
             {/* Desktop layout: sidebar + content; Mobile: content + bottom nav */}
             <div className="flex min-h-screen">
 
@@ -69,6 +72,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <NavLinks variant="bottom" />
               </div>
             </nav>
+            <UpdatePrompt />
+            </PwaUpdateProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

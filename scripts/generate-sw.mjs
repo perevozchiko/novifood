@@ -1,6 +1,26 @@
 /*
+  Generates public/sw.js with a per-build cache name so deployed PWAs can
+  detect and apply updates on desktop, iOS, and Android.
+*/
+
+import { execSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+const buildId = (() => {
+  try {
+    return execSync('git rev-parse --short HEAD', { cwd: root }).toString().trim();
+  } catch {
+    return 'dev';
+  }
+})();
+
+const sw = `/*
   NoviFood Service Worker — generated at build time. Do not edit by hand.
-  BUILD_ID: 3024a76
+  BUILD_ID: ${buildId}
 
   Update strategy (prompt):
   - A new build changes this file and installs a waiting worker.
@@ -8,7 +28,7 @@
   - Foreground checks (focus / visibility) help installed iOS PWAs pick up updates.
 */
 
-const CACHE_NAME = 'novifood-3024a76';
+const CACHE_NAME = 'novifood-${buildId}';
 const OFFLINE_PAGE = '/offline';
 const PRECACHE = [OFFLINE_PAGE, '/'];
 
@@ -65,3 +85,7 @@ self.addEventListener('fetch', (event) => {
     ),
   );
 });
+`;
+
+writeFileSync(join(root, 'public/sw.js'), sw);
+console.log(`Generated public/sw.js (build ${buildId})`);
