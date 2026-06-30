@@ -66,7 +66,7 @@ interface Props {
 type Status = 'idle' | 'listening' | 'analysing' | 'review' | 'saving';
 
 export default function VoiceInput({ onConfirm }: Props) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [status, setStatus] = useState<Status>('idle');
   const [transcript, setTranscript] = useState('');
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(null);
@@ -168,7 +168,7 @@ export default function VoiceInput({ onConfirm }: Props) {
     setStatus('listening');
 
     const recognition = new SR();
-    recognition.lang = 'ru-RU';
+    recognition.lang = locale === 'en' ? 'en-US' : 'ru-RU';
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
@@ -329,9 +329,9 @@ export default function VoiceInput({ onConfirm }: Props) {
             <span className="font-semibold text-gray-900 dark:text-gray-100">
               {Math.round(analysis.calories * portion)} {t('macro.calories')}
             </span>
-            <span>Б {Math.round(analysis.protein * portion)}г</span>
-            <span>Ж {Math.round(analysis.fat * portion)}г</span>
-            <span>У {Math.round(analysis.carbs * portion)}г</span>
+            <span>{t('macro.pAbbr')} {Math.round(analysis.protein * portion)}{t('macro.g')}</span>
+            <span>{t('macro.fAbbr')} {Math.round(analysis.fat * portion)}{t('macro.g')}</span>
+            <span>{t('macro.cAbbr')} {Math.round(analysis.carbs * portion)}{t('macro.g')}</span>
           </div>
 
           <div className="mb-4">

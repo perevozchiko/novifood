@@ -170,9 +170,9 @@ export default function MealCard({ meal, onDelete, onUpdate }: Props) {
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{time}</p>
         <div className="flex gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
           <span className="font-semibold text-gray-900 dark:text-gray-100">{meal.calories} {t('macro.calories')}</span>
-          <span>Б {meal.protein}г</span>
-          <span>Ж {meal.fat}г</span>
-          <span>У {meal.carbs}г</span>
+          <span>{t('macro.pAbbr')} {meal.protein}{t('macro.g')}</span>
+          <span>{t('macro.fAbbr')} {meal.fat}{t('macro.g')}</span>
+          <span>{t('macro.cAbbr')} {meal.carbs}{t('macro.g')}</span>
         </div>
         {meal.notes && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic leading-snug line-clamp-2">

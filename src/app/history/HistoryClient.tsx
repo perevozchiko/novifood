@@ -96,6 +96,8 @@ export default function HistoryClient({ settings }: Props) {
 
   return (
     <div>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('history.title')}</h1>
+
       {/* Date navigator */}
       <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm mb-6">
         <button

@@ -156,9 +156,9 @@ export default function CameraUpload({ onConfirm }: Props) {
             <span className="font-semibold text-gray-900 dark:text-gray-100">
               {Math.round(analysis.calories * portion)} {t('macro.calories')}
             </span>
-            <span>Б {Math.round(analysis.protein * portion)}г</span>
-            <span>Ж {Math.round(analysis.fat * portion)}г</span>
-            <span>У {Math.round(analysis.carbs * portion)}г</span>
+            <span>{t('macro.pAbbr')} {Math.round(analysis.protein * portion)}{t('macro.g')}</span>
+            <span>{t('macro.fAbbr')} {Math.round(analysis.fat * portion)}{t('macro.g')}</span>
+            <span>{t('macro.cAbbr')} {Math.round(analysis.carbs * portion)}{t('macro.g')}</span>
           </div>
 
           <div className="mb-4">

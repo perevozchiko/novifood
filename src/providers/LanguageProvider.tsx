@@ -4,15 +4,27 @@
   LanguageProvider — stores the selected locale in localStorage and
   exposes it via React Context.
 
-  Default locale: 'ru' (matches the existing UI language).
-  Falls back to 'ru' if localStorage is unavailable.
+  Locale is read synchronously on first client render (and via an inline
+  script in layout.tsx before paint) so tab switches never flash Russian
+  when English is selected.
 */
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Locale } from '@/lib/i18n';
 import { translate, type TranslationKey } from '@/lib/i18n';
 
 const STORAGE_KEY = 'lang';
+
+function readLocale(): Locale {
+  if (typeof window === 'undefined') return 'en';
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'en' || stored === 'ru') return stored;
+  } catch {
+    /* private mode */
+  }
+  return 'en';
+}
 
 interface LanguageContextValue {
   locale: Locale;
@@ -21,38 +33,38 @@ interface LanguageContextValue {
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  locale: 'ru',
+  locale: 'en',
   setLocale: () => {},
   t: (key) => key,
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('ru');
+  const [locale, setLocaleState] = useState<Locale>(readLocale);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (stored === 'en' || stored === 'ru') {
-      setLocaleState(stored);
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  const setLocale = useCallback((next: Locale) => {
+    setLocaleState(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* ignore */
     }
+    document.documentElement.lang = next;
   }, []);
 
-  function setLocale(next: Locale) {
-    setLocaleState(next);
-    localStorage.setItem(STORAGE_KEY, next);
-  }
-
-  function t(key: TranslationKey, ...args: (string | number)[]): string {
-    return translate(locale, key, ...args);
-  }
-
-  return (
-    <LanguageContext.Provider value={{ locale, setLocale, t }}>
-      {children}
-    </LanguageContext.Provider>
+  const t = useCallback(
+    (key: TranslationKey, ...args: (string | number)[]) => translate(locale, key, ...args),
+    [locale],
   );
+
+  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
-/* Hook for consuming translations in any client component */
 export function useT() {
   return useContext(LanguageContext);
 }

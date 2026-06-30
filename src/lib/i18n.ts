@@ -28,6 +28,10 @@ const dictionaries = {
     'macro.fat': 'Fat',
     'macro.carbs': 'Carbs',
     'macro.goal': 'of {0}',
+    'macro.pAbbr': 'P',
+    'macro.fAbbr': 'F',
+    'macro.cAbbr': 'C',
+    'macro.g': 'g',
 
     // MealCard
     'meal.edit': 'Edit',
@@ -232,6 +236,10 @@ const dictionaries = {
     'macro.fat': 'Жиры',
     'macro.carbs': 'Углеводы',
     'macro.goal': 'из {0}',
+    'macro.pAbbr': 'Б',
+    'macro.fAbbr': 'Ж',
+    'macro.cAbbr': 'У',
+    'macro.g': 'г',
 
     // MealCard
     'meal.edit': 'Редактировать',

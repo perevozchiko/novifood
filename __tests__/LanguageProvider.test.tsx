@@ -19,13 +19,13 @@ describe('LanguageProvider', () => {
     localStorage.clear();
   });
 
-  it('defaultLang_ShouldBeRu_WhenNoStoredPreference', () => {
+  it('defaultLang_ShouldBeEn_WhenNoStoredPreference', () => {
     render(
       <LanguageProvider>
         <LangDisplay />
       </LanguageProvider>,
     );
-    expect(screen.getByTestId('lang').textContent).toBe('ru');
+    expect(screen.getByTestId('lang').textContent).toBe('en');
   });
 
   it('setLang_ShouldSwitchToRu_AndTranslateStrings', async () => {
@@ -66,16 +66,14 @@ describe('LanguageProvider', () => {
     });
   });
 
-  it('init_ShouldRestoreStoredLanguage_OnMount', async () => {
+  it('init_ShouldRestoreStoredLanguage_OnMount', () => {
     localStorage.setItem('lang', 'en');
     render(
       <LanguageProvider>
         <LangDisplay />
       </LanguageProvider>,
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('lang').textContent).toBe('en');
-    });
+    expect(screen.getByTestId('lang').textContent).toBe('en');
   });
 
   it('useT_ShouldReturnLocaleAndT_WhenInsideProvider', () => {
