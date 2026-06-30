@@ -224,6 +224,7 @@ export default function SettingsClient({ settings }: Props) {
               min={0}
               value={form[key]}
               onChange={(e) => setField(key, Number(e.target.value))}
+              onFocus={(e) => e.currentTarget.select()}
               className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-900 dark:text-gray-100"
             />
           </div>
