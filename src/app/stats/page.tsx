@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useCachedQuery } from '@/hooks/useCachedQuery';
+import LoadError from '@/components/LoadError';
+import { useAuthenticatedQuery } from '@/hooks/useAuthenticatedQuery';
 import { fetchWeekStats } from '@/lib/week-stats';
 import StatsClient from './StatsClient';
 
@@ -19,8 +20,9 @@ function StatsSkeleton() {
 
 export default function StatsPage() {
   const fetcher = useCallback(() => fetchWeekStats(), []);
-  const { data, isLoading } = useCachedQuery('stats:week', fetcher);
+  const { data, isLoading, error, refetch } = useAuthenticatedQuery('stats:week', fetcher);
 
+  if (error) return <LoadError onRetry={refetch} />;
   return isLoading || !data ? (
     <StatsSkeleton />
   ) : (

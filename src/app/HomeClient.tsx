@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { useCachedQuery } from '@/hooks/useCachedQuery';
+import { useAuthenticatedQuery } from '@/hooks/useAuthenticatedQuery';
 import { fetchDiaryData } from '@/lib/diary-data';
+import LoadError from '@/components/LoadError';
 import DiaryClient from './DiaryClient';
 import TodayDate from './TodayDate';
 
@@ -32,7 +33,7 @@ export function DiarySkeleton() {
 export default function HomeClient() {
   const dateStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const fetcher = useCallback(() => fetchDiaryData(dateStr), [dateStr]);
-  const { data, isLoading } = useCachedQuery(`diary:${dateStr}`, fetcher);
+  const { data, isLoading, error, refetch } = useAuthenticatedQuery(`diary:${dateStr}`, fetcher);
 
   return (
     <div className="pt-6">
@@ -41,7 +42,9 @@ export default function HomeClient() {
         <TodayDate />
       </header>
 
-      {isLoading || !data ? (
+      {error ? (
+        <LoadError onRetry={refetch} />
+      ) : isLoading || !data ? (
         <DiarySkeleton />
       ) : (
         <DiaryClient

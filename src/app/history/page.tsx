@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useCachedQuery } from '@/hooks/useCachedQuery';
+import LoadError from '@/components/LoadError';
+import { useAuthenticatedQuery } from '@/hooks/useAuthenticatedQuery';
 import { getSettingsBrowser } from '@/lib/settings';
 import HistoryClient from './HistoryClient';
 
@@ -25,11 +26,13 @@ function HistorySkeleton() {
 
 export default function HistoryPage() {
   const fetcher = useCallback(() => getSettingsBrowser(), []);
-  const { data: settings, isLoading } = useCachedQuery('settings', fetcher);
+  const { data: settings, isLoading, error, refetch } = useAuthenticatedQuery('settings', fetcher);
 
   return (
     <div className="pt-6">
-      {isLoading || !settings ? (
+      {error ? (
+        <LoadError onRetry={refetch} />
+      ) : isLoading || !settings ? (
         <HistorySkeleton />
       ) : (
         <HistoryClient settings={settings} />

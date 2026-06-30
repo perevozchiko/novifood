@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useCachedQuery } from '@/hooks/useCachedQuery';
+import LoadError from '@/components/LoadError';
+import { useAuthenticatedQuery } from '@/hooks/useAuthenticatedQuery';
 import { getWeightHistoryBrowser } from '@/lib/weight';
 import WeightClient from './WeightClient';
 
@@ -23,7 +24,8 @@ function WeightSkeleton() {
 
 export default function WeightPage() {
   const fetcher = useCallback(() => getWeightHistoryBrowser(), []);
-  const { data, isLoading } = useCachedQuery('weight', fetcher);
+  const { data, isLoading, error, refetch } = useAuthenticatedQuery('weight', fetcher);
 
+  if (error) return <LoadError onRetry={refetch} />;
   return isLoading || !data ? <WeightSkeleton /> : <WeightClient initialHistory={data} />;
 }

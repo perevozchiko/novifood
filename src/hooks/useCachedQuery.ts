@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getCached, setCached } from '@/lib/client-cache';
 
 /*
@@ -10,11 +10,30 @@ import { getCached, setCached } from '@/lib/client-cache';
   background so the UI stays responsive like a SPA.
 */
 
-export function useCachedQuery<T>(key: string, fetcher: () => Promise<T>) {
-  const [data, setData] = useState<T | null>(() => getCached<T>(key) ?? null);
+type UseCachedQueryOptions = {
+  /** When false, the fetch is deferred (e.g. until auth session is ready). */
+  enabled?: boolean;
+};
+
+export function useCachedQuery<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  options: UseCachedQueryOptions = {},
+) {
+  const enabled = options.enabled ?? true;
+  const [data, setData] = useState<T | null>(() => (enabled ? getCached<T>(key) ?? null : null));
   const [error, setError] = useState<Error | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  const refetch = useCallback(() => {
+    setData(null);
+    setError(null);
+    setAttempt((n) => n + 1);
+  }, []);
 
   useEffect(() => {
+    if (!enabled) return;
+
     let cancelled = false;
 
     void fetcher()
@@ -32,7 +51,12 @@ export function useCachedQuery<T>(key: string, fetcher: () => Promise<T>) {
     return () => {
       cancelled = true;
     };
-  }, [key, fetcher]);
+  }, [key, fetcher, enabled, attempt]);
 
-  return { data, error, isLoading: data === null && error === null };
+  return {
+    data,
+    error,
+    isLoading: enabled && data === null && error === null,
+    refetch,
+  };
 }

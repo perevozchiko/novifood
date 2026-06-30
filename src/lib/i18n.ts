@@ -197,6 +197,10 @@ const dictionaries = {
     'settings.deleteAll.confirm': 'Yes, delete everything',
     'settings.deleteAll.cancel': 'Cancel',
 
+    // Common
+    'common.loadError': 'Failed to load data. Check your connection and try again.',
+    'common.retry': 'Retry',
+
     // Auth
     'auth.email': 'Email',
     'auth.password': 'Password',
@@ -431,6 +435,10 @@ const dictionaries = {
     'settings.deleteAll.warning': 'Это действие навсегда удалит все записи о питании, весе и потреблении воды. Отменить это действие невозможно.',
     'settings.deleteAll.confirm': 'Да, удалить всё',
     'settings.deleteAll.cancel': 'Отмена',
+
+    // Common
+    'common.loadError': 'Не удалось загрузить данные. Проверьте соединение и попробуйте снова.',
+    'common.retry': 'Повторить',
 
     // Auth
     'auth.email': 'Email',

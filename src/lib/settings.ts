@@ -15,7 +15,8 @@ function normalizeSettings(data: Settings): Settings {
 }
 
 export async function getSettingsBrowser(): Promise<Settings> {
-  const { data: { user } } = await supabaseBrowser.auth.getUser();
+  const { data: { session } } = await supabaseBrowser.auth.getSession();
+  const user = session?.user;
   if (!user) throw new Error('Not authenticated');
 
   const { data, error } = await supabaseBrowser
@@ -29,7 +30,8 @@ export async function getSettingsBrowser(): Promise<Settings> {
 }
 
 export async function updateSettings(updates: Partial<Settings>): Promise<Settings> {
-  const { data: { user } } = await supabaseBrowser.auth.getUser();
+  const { data: { session } } = await supabaseBrowser.auth.getSession();
+  const user = session?.user;
   if (!user) throw new Error('Not authenticated');
 
   const { user_id: _userId, ...fields } = updates;

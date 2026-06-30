@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useCachedQuery } from '@/hooks/useCachedQuery';
+import LoadError from '@/components/LoadError';
+import { useAuthenticatedQuery } from '@/hooks/useAuthenticatedQuery';
 import { getSettingsBrowser } from '@/lib/settings';
 import SettingsClient from './SettingsClient';
 
@@ -23,7 +24,8 @@ function SettingsSkeleton() {
 
 export default function SettingsPage() {
   const fetcher = useCallback(() => getSettingsBrowser(), []);
-  const { data, isLoading } = useCachedQuery('settings', fetcher);
+  const { data, isLoading, error, refetch } = useAuthenticatedQuery('settings', fetcher);
 
+  if (error) return <LoadError onRetry={refetch} />;
   return isLoading || !data ? <SettingsSkeleton /> : <SettingsClient settings={data} />;
 }
