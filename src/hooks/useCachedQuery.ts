@@ -25,6 +25,12 @@ export function useCachedQuery<T>(
   const [error, setError] = useState<Error | null>(null);
   const [attempt, setAttempt] = useState(0);
 
+  useEffect(() => {
+    if (!enabled) return;
+    const cached = getCached<T>(key);
+    if (cached != null) setData(cached);
+  }, [enabled, key]);
+
   const refetch = useCallback(() => {
     setData(null);
     setError(null);

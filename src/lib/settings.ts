@@ -23,10 +23,28 @@ export async function getSettingsBrowser(): Promise<Settings> {
     .from('settings')
     .select('*')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return normalizeSettings(data);
+  if (data) return normalizeSettings(data);
+
+  // Users created before the sign-up trigger may have no settings row yet.
+  const { data: created, error: insertError } = await supabaseBrowser
+    .from('settings')
+    .insert({ user_id: user.id })
+    .select()
+    .single();
+
+  if (!insertError && created) return normalizeSettings(created);
+
+  const { data: existing, error: selectError } = await supabaseBrowser
+    .from('settings')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (selectError) throw insertError ?? selectError;
+  return normalizeSettings(existing);
 }
 
 export async function updateSettings(updates: Partial<Settings>): Promise<Settings> {
