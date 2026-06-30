@@ -268,7 +268,7 @@ export default function SettingsClient({ settings }: Props) {
           type="button"
           onClick={handleExportMeals}
           disabled={exportingMeals}
-          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors disabled:opacity-60"
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
         >
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {exportingMeals ? t('settings.export.loading') : t('settings.export.meals')}
@@ -280,7 +280,7 @@ export default function SettingsClient({ settings }: Props) {
           type="button"
           onClick={handleExportWeight}
           disabled={exportingWeight}
-          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors disabled:opacity-60"
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
         >
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {exportingWeight ? t('settings.export.loading') : t('settings.export.weight')}
