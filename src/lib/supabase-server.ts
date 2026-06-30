@@ -1,31 +1,38 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /*
   Supabase client for Server Components and Route Handlers.
 
-  Lazy-initialized so that missing env vars during `next build` (static
-  page collection) do not crash the build process. At runtime the vars
-  are always present via .env.local / Vercel environment settings.
+  Uses cookie-based sessions so auth state is shared with the browser client.
 */
 
-let _client: SupabaseClient | null = null;
-
-export function getServerClient(): SupabaseClient {
-  if (!_client) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) throw new Error('Supabase env vars are not set');
-    _client = createClient(url, key);
-  }
-  return _client;
+function getEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('Supabase env vars are not set');
+  return { url, key };
 }
 
-/*
-  Legacy named export. Uses a Proxy so createClient() is only called
-  on first property access (i.e. at request time, not build time).
-*/
-export const supabaseServer = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    return (getServerClient() as unknown as Record<string | symbol, unknown>)[prop];
-  },
-});
+export async function getServerClient(): Promise<SupabaseClient> {
+  const cookieStore = await cookies();
+  const { url, key } = getEnv();
+
+  return createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // setAll is called from Server Components where cookies are read-only.
+        }
+      },
+    },
+  });
+}

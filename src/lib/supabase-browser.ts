@@ -1,11 +1,10 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /*
   Supabase client for Client Components.
 
-  Lazy-initialized so that missing env vars during `next build` (static
-  page collection) do not crash the build process. At runtime the vars
-  are always present via .env.local / Vercel environment settings.
+  Uses cookie-based sessions synced with the server client via middleware.
 */
 
 let _client: SupabaseClient | null = null;
@@ -15,15 +14,13 @@ export function getBrowserClient(): SupabaseClient {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !key) throw new Error('Supabase env vars are not set');
-    _client = createClient(url, key);
+    _client = createBrowserClient(url, key);
   }
   return _client;
 }
 
 /*
   Legacy named export kept for backward compatibility with existing imports.
-  Accessing this at module-evaluation time will throw if env vars are absent,
-  so prefer getBrowserClient() in new code.
 */
 export const supabaseBrowser = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
