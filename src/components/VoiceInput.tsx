@@ -28,6 +28,7 @@ interface ISpeechRecognitionResult {
 }
 
 interface ISpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
   readonly results: { [index: number]: ISpeechRecognitionResult; readonly length: number };
 }
 
