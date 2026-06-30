@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { PwaUpdateProvider } from '@/providers/PwaUpdateProvider';
 import UpdatePrompt from '@/components/UpdatePrompt';
 import ThemeToggle from './ThemeToggle';
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <ThemeProvider>
           <LanguageProvider>
+            <AuthProvider>
             <PwaUpdateProvider>
             {/* Desktop layout: sidebar + content; Mobile: content + bottom nav */}
             <div className="flex min-h-screen">
@@ -74,6 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </nav>
             <UpdatePrompt />
             </PwaUpdateProvider>
+            </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>
