@@ -175,11 +175,17 @@ const dictionaries = {
     'update.now': 'Update',
     'update.later': 'Later',
 
-    // Settings — data export section
+    // Settings — data export / import section
     'settings.data': 'Data',
     'settings.export.meals': 'Export meals (CSV)',
     'settings.export.weight': 'Export weight (CSV)',
     'settings.export.loading': 'Preparing…',
+    'settings.import.meals': 'Import meals (CSV)',
+    'settings.import.weight': 'Import weight (CSV)',
+    'settings.import.loading': 'Importing…',
+    'settings.import.success': 'Imported {0} records',
+    'settings.import.error': 'Import failed. Check the file format.',
+    'settings.import.invalidFormat': 'Invalid CSV file. Use a file exported from NoviFood.',
 
     // Settings — delete all data
     'settings.danger': 'Danger Zone',
@@ -404,11 +410,17 @@ const dictionaries = {
     'update.now': 'Обновить',
     'update.later': 'Позже',
 
-    // Settings — data export section
+    // Settings — data export / import section
     'settings.data': 'Данные',
     'settings.export.meals': 'Экспорт питания (CSV)',
     'settings.export.weight': 'Экспорт веса (CSV)',
     'settings.export.loading': 'Подготовка…',
+    'settings.import.meals': 'Импорт питания (CSV)',
+    'settings.import.weight': 'Импорт веса (CSV)',
+    'settings.import.loading': 'Импорт…',
+    'settings.import.success': 'Импортировано записей: {0}',
+    'settings.import.error': 'Не удалось импортировать. Проверьте формат файла.',
+    'settings.import.invalidFormat': 'Неверный CSV. Используйте файл, экспортированный из NoviFood.',
 
     // Settings — delete all data
     'settings.danger': 'Опасная зона',

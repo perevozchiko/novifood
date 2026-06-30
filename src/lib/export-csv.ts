@@ -7,6 +7,20 @@
 
 import type { Meal, Weight } from '@/types';
 
+export const MEALS_CSV_HEADER = [
+  'Date',
+  'Time',
+  'Name',
+  'Type',
+  'Calories',
+  'Protein (g)',
+  'Fat (g)',
+  'Carbs (g)',
+  'Notes',
+] as const;
+
+export const WEIGHT_CSV_HEADER = ['Date', 'Time', 'Weight (kg)'] as const;
+
 function escapeCsv(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return '';
   const str = String(value);
@@ -30,8 +44,7 @@ function downloadCsv(filename: string, rows: string[][]): void {
 
 /* Export meal diary to CSV. */
 export function exportMealsCsv(meals: Meal[]): void {
-  const header = ['Date', 'Time', 'Name', 'Type', 'Calories', 'Protein (g)', 'Fat (g)', 'Carbs (g)', 'Notes'];
-  const rows: string[][] = [header];
+  const rows: string[][] = [[...MEALS_CSV_HEADER]];
 
   for (const m of meals) {
     const dt = new Date(m.eaten_at);
@@ -54,8 +67,7 @@ export function exportMealsCsv(meals: Meal[]): void {
 
 /* Export weight log to CSV. */
 export function exportWeightCsv(history: Weight[]): void {
-  const header = ['Date', 'Time', 'Weight (kg)'];
-  const rows: string[][] = [header];
+  const rows: string[][] = [[...WEIGHT_CSV_HEADER]];
 
   for (const w of history) {
     const dt = new Date(w.created_at);

@@ -8,13 +8,19 @@
   - Appearance section: theme toggle, language toggle, app version
 */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sun, Moon, Download, Trash2, AlertTriangle, LogOut } from 'lucide-react';
+import { Sun, Moon, Download, Upload, Trash2, AlertTriangle, LogOut } from 'lucide-react';
 import { updateSettings } from '@/lib/settings';
 import { setCached } from '@/lib/client-cache';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { exportMealsCsv, exportWeightCsv } from '@/lib/export-csv';
+import {
+  ImportCsvError,
+  parseMealsCsv,
+  parseWeightCsv,
+  readCsvFile,
+} from '@/lib/import-csv';
 import type { Settings } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 import { usePwaUpdate } from '@/providers/PwaUpdateProvider';
@@ -42,6 +48,14 @@ export default function SettingsClient({ settings }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [exportingMeals, setExportingMeals] = useState(false);
   const [exportingWeight, setExportingWeight] = useState(false);
+  const [importingMeals, setImportingMeals] = useState(false);
+  const [importingWeight, setImportingWeight] = useState(false);
+  const [importMealsSuccess, setImportMealsSuccess] = useState<string | null>(null);
+  const [importWeightSuccess, setImportWeightSuccess] = useState<string | null>(null);
+  const [importMealsError, setImportMealsError] = useState<string | null>(null);
+  const [importWeightError, setImportWeightError] = useState<string | null>(null);
+  const mealsFileRef = useRef<HTMLInputElement>(null);
+  const weightFileRef = useRef<HTMLInputElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -82,6 +96,62 @@ export default function SettingsClient({ settings }: Props) {
       exportWeightCsv(data ?? []);
     } finally {
       setExportingWeight(false);
+    }
+  }
+
+  async function handleImportMealsFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setImportingMeals(true);
+    setImportMealsError(null);
+    setImportMealsSuccess(null);
+    try {
+      const text = await readCsvFile(file);
+      const rows = parseMealsCsv(text);
+      if (rows.length === 0) {
+        setImportMealsSuccess(t('settings.import.success', '0'));
+        return;
+      }
+
+      const { error } = await supabaseBrowser.from('meals').insert(rows);
+      if (error) throw error;
+      setImportMealsSuccess(t('settings.import.success', String(rows.length)));
+    } catch (err) {
+      setImportMealsError(
+        err instanceof ImportCsvError ? t('settings.import.invalidFormat') : t('settings.import.error'),
+      );
+    } finally {
+      setImportingMeals(false);
+    }
+  }
+
+  async function handleImportWeightFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setImportingWeight(true);
+    setImportWeightError(null);
+    setImportWeightSuccess(null);
+    try {
+      const text = await readCsvFile(file);
+      const rows = parseWeightCsv(text);
+      if (rows.length === 0) {
+        setImportWeightSuccess(t('settings.import.success', '0'));
+        return;
+      }
+
+      const { error } = await supabaseBrowser.from('weight').insert(rows);
+      if (error) throw error;
+      setImportWeightSuccess(t('settings.import.success', String(rows.length)));
+    } catch (err) {
+      setImportWeightError(
+        err instanceof ImportCsvError ? t('settings.import.invalidFormat') : t('settings.import.error'),
+      );
+    } finally {
+      setImportingWeight(false);
     }
   }
 
@@ -272,35 +342,95 @@ export default function SettingsClient({ settings }: Props) {
         </div>
       </div>
 
-      {/* ── Data export ── */}
+      {/* ── Data export / import ── */}
       <div className="space-y-3">
         <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 px-1">
           {t('settings.data')}
         </h2>
 
-        <button
-          type="button"
-          onClick={handleExportMeals}
-          disabled={exportingMeals}
-          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
-        >
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {exportingMeals ? t('settings.export.loading') : t('settings.export.meals')}
-          </span>
-          <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-        </button>
+        <input
+          ref={mealsFileRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={handleImportMealsFile}
+        />
+        <input
+          ref={weightFileRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={handleImportWeightFile}
+        />
 
-        <button
-          type="button"
-          onClick={handleExportWeight}
-          disabled={exportingWeight}
-          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
-        >
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {exportingWeight ? t('settings.export.loading') : t('settings.export.weight')}
-          </span>
-          <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-        </button>
+        {importMealsSuccess && (
+          <p className="text-sm text-green-600 dark:text-green-400 px-1">{importMealsSuccess}</p>
+        )}
+        {importMealsError && (
+          <p className="text-sm text-red-500 px-1">{importMealsError}</p>
+        )}
+        {importWeightSuccess && (
+          <p className="text-sm text-green-600 dark:text-green-400 px-1">{importWeightSuccess}</p>
+        )}
+        {importWeightError && (
+          <p className="text-sm text-red-500 px-1">{importWeightError}</p>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {exportingMeals ? t('settings.export.loading') : t('settings.export.meals')}
+            </span>
+            <button
+              type="button"
+              onClick={handleExportMeals}
+              disabled={exportingMeals}
+              aria-label={t('settings.export.meals')}
+              className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+            >
+              <Download size={16} />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => mealsFileRef.current?.click()}
+            disabled={importingMeals}
+            className="w-full flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 -mx-2 px-2 py-2 rounded-xl transition-colors disabled:opacity-60"
+          >
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {importingMeals ? t('settings.import.loading') : t('settings.import.meals')}
+            </span>
+            <Upload size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          </button>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {exportingWeight ? t('settings.export.loading') : t('settings.export.weight')}
+            </span>
+            <button
+              type="button"
+              onClick={handleExportWeight}
+              disabled={exportingWeight}
+              aria-label={t('settings.export.weight')}
+              className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+            >
+              <Download size={16} />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => weightFileRef.current?.click()}
+            disabled={importingWeight}
+            className="w-full flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 -mx-2 px-2 py-2 rounded-xl transition-colors disabled:opacity-60"
+          >
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {importingWeight ? t('settings.import.loading') : t('settings.import.weight')}
+            </span>
+            <Upload size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          </button>
+        </div>
       </div>
 
       {/* ── Account ── */}
