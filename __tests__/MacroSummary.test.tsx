@@ -5,7 +5,7 @@ import type { Meal, Settings } from '@/types';
 import { renderWithProviders } from './utils/renderWithProviders';
 
 const settings: Settings = {
-  id: 1,
+  user_id: 'test-user',
   calorie_goal: 2200,
   protein_goal: 150,
   fat_goal: 80,

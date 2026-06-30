@@ -5,11 +5,12 @@ import type { Settings } from '@/types';
 import { renderWithProviders } from './utils/renderWithProviders';
 
 const settings: Settings = {
-  id: 1,
+  user_id: 'test-user',
   calorie_goal: 2000,
   protein_goal: 150,
   fat_goal: 70,
   carbs_goal: 200,
+  water_goal_ml: 2000,
 };
 
 function makeDays(overrides: Partial<DayStat>[] = []): DayStat[] {

@@ -1,18 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-const { mockAnalyzeFoodText, mockMaybeSingle, mockUpsert, mockFrom } = vi.hoisted(() => {
+const { mockAnalyzeFoodText, mockMaybeSingle, mockUpsert, mockFrom, mockGetUser } = vi.hoisted(() => {
   const mockAnalyzeFoodText = vi.fn();
   const mockMaybeSingle = vi.fn();
   const mockUpsert = vi.fn().mockResolvedValue({ error: null });
+  const mockGetUser = vi.fn();
   const mockFrom = vi.fn(() => ({
     select: vi.fn(() => ({
-      eq: vi.fn(() => ({ maybeSingle: mockMaybeSingle })),
+      eq: vi.fn(() => ({
+        eq: vi.fn(() => ({ maybeSingle: mockMaybeSingle })),
+      })),
     })),
     upsert: mockUpsert,
   }));
 
-  return { mockAnalyzeFoodText, mockMaybeSingle, mockUpsert, mockFrom };
+  return { mockAnalyzeFoodText, mockMaybeSingle, mockUpsert, mockFrom, mockGetUser };
 });
 
 vi.mock('@/lib/gemini', () => ({
@@ -30,7 +33,10 @@ vi.mock('@/lib/gemini', () => ({
 }));
 
 vi.mock('@/lib/supabase-server', () => ({
-  getServerClient: () => ({ from: mockFrom }),
+  getServerClient: vi.fn(async () => ({
+    auth: { getUser: mockGetUser },
+    from: mockFrom,
+  })),
 }));
 
 import { POST } from '@/app/api/analyze-voice/route';
@@ -49,6 +55,7 @@ describe('POST /api/analyze-voice', () => {
     mockMaybeSingle.mockReset();
     mockUpsert.mockClear();
     mockFrom.mockClear();
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockMaybeSingle.mockResolvedValue({ data: { count: 0 }, error: null });
   });
 

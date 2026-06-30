@@ -11,17 +11,30 @@ vi.mock('@/lib/settings', () => ({
 }));
 
 /* Mock supabaseBrowser for delete-all functionality. */
-const mockFrom = vi.fn();
+const { mockFrom, mockSignOut } = vi.hoisted(() => {
+  const mockFrom = vi.fn();
+  const mockSignOut = vi.fn().mockResolvedValue({ error: null });
+  return { mockFrom, mockSignOut };
+});
+
 vi.mock('@/lib/supabase-browser', () => ({
   supabaseBrowser: {
     from: (table: string) => mockFrom(table),
+    auth: { signOut: mockSignOut },
   },
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    refresh: vi.fn(),
+  }),
 }));
 
 import { updateSettings } from '@/lib/settings';
 
 const settings: Settings = {
-  id: 1,
+  user_id: 'test-user',
   calorie_goal: 2200,
   protein_goal: 150,
   fat_goal: 80,
