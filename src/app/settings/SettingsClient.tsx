@@ -377,26 +377,23 @@ export default function SettingsClient({ settings }: Props) {
           <p className="text-sm text-red-500 px-1">{importWeightError}</p>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between gap-3">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm divide-y divide-gray-100 dark:divide-gray-700">
+          <button
+            type="button"
+            onClick={handleExportMeals}
+            disabled={exportingMeals}
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+          >
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {exportingMeals ? t('settings.export.loading') : t('settings.export.meals')}
             </span>
-            <button
-              type="button"
-              onClick={handleExportMeals}
-              disabled={exportingMeals}
-              aria-label={t('settings.export.meals')}
-              className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
-            >
-              <Download size={16} />
-            </button>
-          </div>
+            <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          </button>
           <button
             type="button"
             onClick={() => mealsFileRef.current?.click()}
             disabled={importingMeals}
-            className="w-full flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 -mx-2 px-2 py-2 rounded-xl transition-colors disabled:opacity-60"
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
           >
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {importingMeals ? t('settings.import.loading') : t('settings.import.meals')}
@@ -405,26 +402,23 @@ export default function SettingsClient({ settings }: Props) {
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between gap-3">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm divide-y divide-gray-100 dark:divide-gray-700">
+          <button
+            type="button"
+            onClick={handleExportWeight}
+            disabled={exportingWeight}
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+          >
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {exportingWeight ? t('settings.export.loading') : t('settings.export.weight')}
             </span>
-            <button
-              type="button"
-              onClick={handleExportWeight}
-              disabled={exportingWeight}
-              aria-label={t('settings.export.weight')}
-              className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
-            >
-              <Download size={16} />
-            </button>
-          </div>
+            <Download size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          </button>
           <button
             type="button"
             onClick={() => weightFileRef.current?.click()}
             disabled={importingWeight}
-            className="w-full flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 -mx-2 px-2 py-2 rounded-xl transition-colors disabled:opacity-60"
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
           >
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {importingWeight ? t('settings.import.loading') : t('settings.import.weight')}

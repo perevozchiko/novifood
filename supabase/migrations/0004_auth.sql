@@ -6,14 +6,6 @@ alter table settings drop constraint if exists settings_id_check;
 alter table settings
   add column if not exists user_id uuid references auth.users(id) on delete cascade;
 
--- Drop legacy single-user row and id column; user_id becomes the primary key.
-delete from settings where user_id is null;
-
-alter table settings drop constraint if exists settings_pkey;
-alter table settings drop column if exists id;
-alter table settings alter column user_id set not null;
-alter table settings add primary key (user_id);
-
 -- ─── user_id on data tables ───────────────────────────────────────────────────
 alter table meals
   add column if not exists user_id uuid references auth.users(id) on delete cascade;
@@ -23,6 +15,28 @@ alter table weight
 
 alter table water_intake
   add column if not exists user_id uuid references auth.users(id) on delete cascade;
+
+-- Backfill legacy single-user rows to the earliest auth user before cleanup.
+do $$
+declare
+  default_user uuid;
+begin
+  select id into default_user from auth.users order by created_at limit 1;
+  if default_user is not null then
+    update settings set user_id = default_user where user_id is null;
+    update meals set user_id = default_user where user_id is null;
+    update weight set user_id = default_user where user_id is null;
+    update water_intake set user_id = default_user where user_id is null;
+  end if;
+end $$;
+
+-- Drop legacy single-user row and id column; user_id becomes the primary key.
+delete from settings where user_id is null;
+
+alter table settings drop constraint if exists settings_pkey;
+alter table settings drop column if exists id;
+alter table settings alter column user_id set not null;
+alter table settings add primary key (user_id);
 
 delete from meals where user_id is null;
 delete from weight where user_id is null;

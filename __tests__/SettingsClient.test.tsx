@@ -10,6 +10,20 @@ vi.mock('@/lib/settings', () => ({
   updateSettings: vi.fn(),
 }));
 
+const { exportMealsCsv, exportWeightCsv } = vi.hoisted(() => ({
+  exportMealsCsv: vi.fn(),
+  exportWeightCsv: vi.fn(),
+}));
+
+vi.mock('@/lib/export-csv', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/export-csv')>();
+  return {
+    ...actual,
+    exportMealsCsv,
+    exportWeightCsv,
+  };
+});
+
 /* Mock supabaseBrowser for delete-all functionality. */
 const { mockFrom, mockSignOut } = vi.hoisted(() => {
   const mockFrom = vi.fn();
@@ -32,6 +46,12 @@ vi.mock('next/navigation', () => ({
 }));
 
 import { updateSettings } from '@/lib/settings';
+import { MEALS_CSV_HEADER, WEIGHT_CSV_HEADER } from '@/lib/export-csv';
+
+function setFileInputFiles(input: HTMLInputElement, files: File[]) {
+  Object.defineProperty(input, 'files', { configurable: true, value: files });
+  fireEvent.change(input);
+}
 
 const settings: Settings = {
   user_id: 'test-user',
@@ -185,6 +205,168 @@ describe('SettingsClient', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Все данные удалены')).toBeDefined();
+    });
+  });
+
+  it('exportMeals_ShouldFetchAndDownloadCsv_WhenExportClicked', async () => {
+    const meals = [
+      {
+        id: 'm1',
+        created_at: '2026-06-25T08:00:00Z',
+        eaten_at: '2026-06-25T08:00:00Z',
+        name: 'Oatmeal',
+        meal_type: 'breakfast',
+        calories: 350,
+        protein: 12,
+        fat: 6,
+        carbs: 60,
+        notes: null,
+      },
+    ];
+    const orderMock = vi.fn().mockResolvedValue({ data: meals });
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      order: orderMock,
+      delete: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockResolvedValue({ error: null }),
+    });
+
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    fireEvent.click(screen.getByText('Export meals (CSV)'));
+
+    await waitFor(() => {
+      expect(mockFrom).toHaveBeenCalledWith('meals');
+      expect(orderMock).toHaveBeenCalledWith('eaten_at', { ascending: true });
+      expect(exportMealsCsv).toHaveBeenCalledWith(meals);
+    });
+  });
+
+  it('exportWeight_ShouldFetchAndDownloadCsv_WhenExportClicked', async () => {
+    const weights = [{ id: 'w1', created_at: '2026-06-25T08:00:00Z', value: 72.5 }];
+    const orderMock = vi.fn().mockResolvedValue({ data: weights });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'weight') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          order: orderMock,
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: [] }),
+        delete: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockResolvedValue({ error: null }),
+      };
+    });
+
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    fireEvent.click(screen.getByText('Export weight (CSV)'));
+
+    await waitFor(() => {
+      expect(mockFrom).toHaveBeenCalledWith('weight');
+      expect(orderMock).toHaveBeenCalledWith('created_at', { ascending: true });
+      expect(exportWeightCsv).toHaveBeenCalledWith(weights);
+    });
+  });
+
+  it('importMeals_ShouldInsertRows_WhenValidCsvSelected', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'meals') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [] }),
+          insert: insertMock,
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: [] }),
+        delete: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockResolvedValue({ error: null }),
+      };
+    });
+
+    const csv = [
+      MEALS_CSV_HEADER.join(','),
+      '2026-06-25,08:00,Oatmeal,breakfast,350,12,6,60,',
+    ].join('\n');
+    const file = new File([csv], 'meals.csv', { type: 'text/csv' });
+
+    const { container } = renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    const input = container.querySelector('input[type="file"][accept=".csv,text/csv"]') as HTMLInputElement;
+
+    setFileInputFiles(input, [file]);
+
+    await waitFor(() => {
+      expect(insertMock).toHaveBeenCalledWith([
+        expect.objectContaining({
+          name: 'Oatmeal',
+          meal_type: 'breakfast',
+          calories: 350,
+        }),
+      ]);
+      expect(screen.getByText('Imported 1 records')).toBeDefined();
+    });
+  });
+
+  it('importMeals_ShouldShowError_WhenCsvInvalid', async () => {
+    const insertMock = vi.fn();
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: [] }),
+      insert: insertMock,
+      delete: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockResolvedValue({ error: null }),
+    });
+
+    const file = new File(['bad,header\n1,2'], 'meals.csv', { type: 'text/csv' });
+
+    const { container } = renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    const input = container.querySelector('input[type="file"][accept=".csv,text/csv"]') as HTMLInputElement;
+
+    setFileInputFiles(input, [file]);
+
+    await waitFor(() => {
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(
+        screen.getByText('Invalid CSV file. Use a file exported from NoviFood.'),
+      ).toBeDefined();
+    });
+  });
+
+  it('importWeight_ShouldInsertRows_WhenValidCsvSelected', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'weight') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [] }),
+          insert: insertMock,
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: [] }),
+        delete: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockResolvedValue({ error: null }),
+      };
+    });
+
+    const csv = [WEIGHT_CSV_HEADER.join(','), '2026-06-25,08:00,72.5'].join('\n');
+    const file = new File([csv], 'weight.csv', { type: 'text/csv' });
+
+    const { container } = renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    const inputs = container.querySelectorAll('input[type="file"][accept=".csv,text/csv"]');
+    const weightInput = inputs[1] as HTMLInputElement;
+
+    setFileInputFiles(weightInput, [file]);
+
+    await waitFor(() => {
+      expect(insertMock).toHaveBeenCalledWith([
+        expect.objectContaining({ value: 72.5 }),
+      ]);
+      expect(screen.getByText('Imported 1 records')).toBeDefined();
     });
   });
 });
