@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="NoviFood">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22c55e"/>
+      <stop offset="1" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Calorie progress ring -->
+  <circle cx="256" cy="268" r="132" stroke="#ffffff" stroke-opacity="0.22" stroke-width="26" fill="none"/>
+  <path
+    d="M256 136a132 132 0 0 1 114.5 66"
+    stroke="#ffffff"
+    stroke-width="26"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path
+    d="M370.5 202a132 132 0 0 1-22.8 146.5"
+    stroke="#ffffff"
+    stroke-width="26"
+    stroke-linecap="round"
+    fill="none"
+  />
+    <path
+    d="M347.7 348.5a132 132 0 0 1-158.2 18.8"
+    stroke="#ffffff"
+    stroke-width="26"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <!-- Leaf (healthy food) -->
+  <path
+    d="M256 168c-38 18-54 48-42 72 8-10 22-16 42-16s34 6 42 16c12-24-4-54-42-72z"
+    fill="#ffffff"
+    fill-opacity="0.95"
+  />
+  <path
+    d="M256 168v56"
+    stroke="#16a34a"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
+  <!-- Flame (calories) -->
+  <path
+    d="M256 248c-28 32-36 58-20 84 8 14 20 22 20 22s12-8 20-22c16-26 8-52-20-84zm0 18c10 14 14 28 8 42-3 8-8 12-8 12s-5-4-8-12c-6-14-2-28 8-42z"
+    fill="#ffffff"
+  />
+</svg>
