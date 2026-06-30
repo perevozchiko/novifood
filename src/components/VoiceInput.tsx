@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Loader2, StopCircle } from 'lucide-react';
 import PortionSelector from './PortionSelector';
 import type { FoodAnalysis, Meal, MealType } from '@/types';
@@ -38,6 +38,7 @@ interface ISpeechRecognitionErrorEvent extends Event {
 
 interface ISpeechRecognition extends EventTarget {
   lang: string;
+  continuous: boolean;
   interimResults: boolean;
   maxAlternatives: number;
   start(): void;
@@ -59,6 +60,9 @@ declare global {
 
 const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
+/** Pause after speech before auto-submit (iOS often skips isFinal until stop). */
+const SILENCE_MS = 1500;
+
 interface Props {
   onConfirm: (meal: Omit<Meal, 'id' | 'created_at'>) => Promise<void>;
 }
@@ -77,35 +81,83 @@ export default function VoiceInput({ onConfirm }: Props) {
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const finalTranscriptRef = useRef('');
   const interimTranscriptRef = useRef('');
+  const submittedRef = useRef(false);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      clearSilenceTimer();
+      abortListening();
+    };
+  }, []);
 
   function getSpeechRecognition(): SpeechRecognitionCtor | undefined {
     if (typeof window === 'undefined') return undefined;
     return window.SpeechRecognition ?? window.webkitSpeechRecognition;
   }
 
-  function abortListening() {
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
-  }
-
-  function stopListening() {
-    const rec = recognitionRef.current;
-    if (!rec) return;
-
-    rec.stop();
-    recognitionRef.current = null;
-
-    const text = (finalTranscriptRef.current + interimTranscriptRef.current).trim();
-    if (text) {
-      setTranscript(text);
-      finalTranscriptRef.current = text;
-      interimTranscriptRef.current = '';
-      setIsInterim(false);
-      analyseTranscript(text);
+  function clearSilenceTimer() {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
     }
   }
 
+  function abortListening() {
+    clearSilenceTimer();
+    const rec = recognitionRef.current;
+    recognitionRef.current = null;
+    if (!rec) return;
+    /* Defer so Safari/iOS releases the mic after the current speech event. */
+    queueMicrotask(() => {
+      try {
+        rec.abort();
+      } catch {
+        /* already stopped */
+      }
+    });
+  }
+
+  function finishListening(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || submittedRef.current) return;
+
+    submittedRef.current = true;
+    clearSilenceTimer();
+    abortListening();
+
+    setTranscript(trimmed);
+    finalTranscriptRef.current = trimmed;
+    interimTranscriptRef.current = '';
+    setIsInterim(false);
+    setStatus('analysing');
+    analyseTranscript(trimmed);
+  }
+
+  function scheduleSilenceSubmit(text: string) {
+    clearSilenceTimer();
+    const trimmed = text.trim();
+    if (!trimmed || submittedRef.current) return;
+
+    silenceTimerRef.current = setTimeout(() => {
+      finishListening(trimmed);
+    }, SILENCE_MS);
+  }
+
+  function stopListening() {
+    const text = (finalTranscriptRef.current + interimTranscriptRef.current).trim();
+    if (text) {
+      finishListening(text);
+      return;
+    }
+
+    submittedRef.current = true;
+    abortListening();
+    setStatus('idle');
+  }
+
   function handleReset() {
+    submittedRef.current = false;
     abortListening();
     setStatus('idle');
     setTranscript('');
@@ -145,6 +197,7 @@ export default function VoiceInput({ onConfirm }: Props) {
       setAnalysis(data);
       setStatus('review');
     } catch (err: unknown) {
+      submittedRef.current = false;
       setError(err instanceof Error ? err.message : t('voice.errorAnalysis'));
       setStatus('idle');
     }
@@ -160,6 +213,7 @@ export default function VoiceInput({ onConfirm }: Props) {
     setError(null);
     setTranscript('');
     setIsInterim(false);
+    submittedRef.current = false;
     finalTranscriptRef.current = '';
     interimTranscriptRef.current = '';
     setAnalysis(null);
@@ -169,6 +223,7 @@ export default function VoiceInput({ onConfirm }: Props) {
 
     const recognition = new SR();
     recognition.lang = locale === 'en' ? 'en-US' : 'ru-RU';
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
@@ -192,15 +247,17 @@ export default function VoiceInput({ onConfirm }: Props) {
       setTranscript(display);
       setIsInterim(interim.length > 0);
 
+      const fullText = display.trim();
       if (interim.length === 0 && finalTranscriptRef.current.trim()) {
-        recognition.stop();
-        recognitionRef.current = null;
-        analyseTranscript(finalTranscriptRef.current.trim());
+        finishListening(finalTranscriptRef.current.trim());
+      } else if (fullText) {
+        scheduleSilenceSubmit(fullText);
       }
     };
 
     recognition.onerror = (event: ISpeechRecognitionErrorEvent) => {
-      recognitionRef.current = null;
+      submittedRef.current = true;
+      abortListening();
       if (event.error === 'no-speech') {
         setError(t('voice.errorNoSpeech'));
       } else if (event.error === 'not-allowed') {
@@ -212,9 +269,12 @@ export default function VoiceInput({ onConfirm }: Props) {
     };
 
     recognition.onend = () => {
-      recognitionRef.current = null;
-      /* If still listening when recognition ends without result, reset to idle. */
-      setStatus((prev) => (prev === 'listening' ? 'idle' : prev));
+      if (recognitionRef.current === recognition) {
+        recognitionRef.current = null;
+      }
+      if (!submittedRef.current) {
+        setStatus((prev) => (prev === 'listening' ? 'idle' : prev));
+      }
     };
 
     recognition.start();
