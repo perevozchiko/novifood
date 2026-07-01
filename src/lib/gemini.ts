@@ -24,14 +24,21 @@ function geminiHeaders(apiKey: string): HeadersInit {
 /*
   Fallback chain: primary model first, then progressively lighter models.
   Each has a separate RPM / RPD quota so a 429 on one does not affect others.
+  Lite models are listed first — they have their own free-tier quota and respond faster.
 */
 const MODELS = [
-  'gemini-2.5-flash',
   'gemini-2.0-flash-lite',
-  'gemini-2.0-flash',
   'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
   'gemini-flash-latest',
+  'gemini-2.0-flash',
 ] as const;
+
+/** Per-model fetch timeout — keeps the fallback chain within Vercel's 30s limit. */
+const PER_REQUEST_TIMEOUT_MS = 8_000;
+
+/** Total wall-clock budget for trying all models in one API call. */
+const TOTAL_DEADLINE_MS = 22_000;
 
 const IMAGE_PROMPT = `Analyse the food in this photo.
 Respond ONLY with a valid JSON object. Do not include markdown codeblocks, wrapping, or explanations.
@@ -90,7 +97,7 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
           'NOT_CONFIGURED',
         );
       }
-      return new GeminiError('AI quota exceeded. Please try again later.', 429);
+      return new GeminiError('AI quota exceeded. Please try again later.', 429, 'GEMINI_QUOTA');
     }
 
     if (status === 401 || status === 403) {
@@ -120,23 +127,32 @@ function extractResponseText(result: unknown, model: string): string {
 }
 
 /* Send a base64-encoded JPEG to a specific model and parse the macro response. */
-async function tryModel(apiKey: string, model: string, base64Image: string): Promise<FoodAnalysis> {
+async function tryModel(
+  apiKey: string,
+  model: string,
+  base64Image: string,
+  timeoutMs: number,
+): Promise<FoodAnalysis> {
   const url = `${BASE_URL}/${model}:generateContent`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: geminiHeaders(apiKey),
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
-            { text: IMAGE_PROMPT },
-          ],
-        },
-      ],
-    }),
-  });
+  const response = await fetchGemini(
+    url,
+    {
+      method: 'POST',
+      headers: geminiHeaders(apiKey),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
+              { text: IMAGE_PROMPT },
+            ],
+          },
+        ],
+      }),
+    },
+    timeoutMs,
+  );
 
   if (!response.ok) {
     const errText = await response.text();
@@ -160,58 +176,106 @@ async function tryModel(apiKey: string, model: string, base64Image: string): Pro
 */
 const RETRYABLE_STATUSES = new Set([429, 404, 503]);
 
+async function fetchGemini(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new GeminiError(`Gemini request timed out after ${timeoutMs}ms.`, 504, 'TIMEOUT');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/*
+  Run model fallback with a total deadline so Vercel serverless functions
+  do not hit the 30s platform timeout when every model returns 429.
+*/
+async function withModelFallback(
+  label: string,
+  tryModel: (model: string, timeoutMs: number) => Promise<FoodAnalysis>,
+): Promise<FoodAnalysis> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
+
+  console.info(`${label}: key=${apiKey.slice(0, 6)}… len=${apiKey.length}`);
+
+  const deadline = Date.now() + TOTAL_DEADLINE_MS;
+  let lastError: GeminiError | null = null;
+
+  for (const model of MODELS) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      console.warn(`${label}: total deadline reached, stopping model fallback`);
+      break;
+    }
+
+    const timeoutMs = Math.min(PER_REQUEST_TIMEOUT_MS, remaining);
+
+    try {
+      return await tryModel(model, timeoutMs);
+    } catch (err) {
+      if (err instanceof GeminiError && err.code === 'NOT_CONFIGURED') {
+        throw err;
+      }
+      if (err instanceof GeminiError && (RETRYABLE_STATUSES.has(err.status) || err.code === 'TIMEOUT')) {
+        console.warn(`Model ${model} unavailable (${err.status}${err.code ? `/${err.code}` : ''}), trying next model…`);
+        lastError = err;
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError ?? new GeminiError('All AI models are currently unavailable.', 429, 'GEMINI_QUOTA');
+}
+
 /*
   Send a base64-encoded JPEG to Gemini and parse the macro response.
   Tries each model in MODELS order; skips to the next on model-specific failures.
   Account-level errors (NOT_CONFIGURED, 401, 403) are thrown immediately.
 */
 export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
-
-  // Log key prefix so Vercel logs can confirm the correct key is loaded.
-  console.info(`analyzeFood: key=${apiKey.slice(0, 6)}… len=${apiKey.length}`);
-
-  let lastError: GeminiError | null = null;
-
-  for (const model of MODELS) {
-    try {
-      return await tryModel(apiKey, model, base64Image);
-    } catch (err) {
-      if (err instanceof GeminiError && err.code === 'NOT_CONFIGURED') {
-        // Account-level quota issue — no point trying other models.
-        throw err;
-      }
-      if (err instanceof GeminiError && RETRYABLE_STATUSES.has(err.status)) {
-        console.warn(`Model ${model} unavailable (${err.status}), trying next model…`);
-        lastError = err;
-        continue;
-      }
-      // Auth errors, config errors, parse failures — fatal.
-      throw err;
-    }
-  }
-
-  throw lastError ?? new GeminiError('All AI models are currently unavailable.', 429);
+  return withModelFallback('analyzeFood', (model, timeoutMs) => {
+    const apiKey = process.env.GEMINI_API_KEY!;
+    return tryModel(apiKey, model, base64Image, timeoutMs);
+  });
 }
 
 /* Send a text description to a specific model and parse the macro response. */
-async function tryModelText(apiKey: string, model: string, userText: string): Promise<FoodAnalysis> {
+async function tryModelText(
+  apiKey: string,
+  model: string,
+  userText: string,
+  timeoutMs: number,
+): Promise<FoodAnalysis> {
   const url = `${BASE_URL}/${model}:generateContent`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: geminiHeaders(apiKey),
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: TEXT_PROMPT_PREFIX + userText },
-          ],
-        },
-      ],
-    }),
-  });
+  const response = await fetchGemini(
+    url,
+    {
+      method: 'POST',
+      headers: geminiHeaders(apiKey),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: TEXT_PROMPT_PREFIX + userText },
+            ],
+          },
+        ],
+      }),
+    },
+    timeoutMs,
+  );
 
   if (!response.ok) {
     const errText = await response.text();
@@ -230,28 +294,8 @@ async function tryModelText(apiKey: string, model: string, userText: string): Pr
   Uses the same model fallback chain as analyzeFood.
 */
 export async function analyzeFoodText(userText: string): Promise<FoodAnalysis> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
-
-  console.info(`analyzeFoodText: key=${apiKey.slice(0, 6)}… len=${apiKey.length}`);
-
-  let lastError: GeminiError | null = null;
-
-  for (const model of MODELS) {
-    try {
-      return await tryModelText(apiKey, model, userText);
-    } catch (err) {
-      if (err instanceof GeminiError && err.code === 'NOT_CONFIGURED') {
-        throw err;
-      }
-      if (err instanceof GeminiError && RETRYABLE_STATUSES.has(err.status)) {
-        console.warn(`Model ${model} unavailable (${err.status}), trying next model…`);
-        lastError = err;
-        continue;
-      }
-      throw err;
-    }
-  }
-
-  throw lastError ?? new GeminiError('All AI models are currently unavailable.', 429);
+  return withModelFallback('analyzeFoodText', (model, timeoutMs) => {
+    const apiKey = process.env.GEMINI_API_KEY!;
+    return tryModelText(apiKey, model, userText, timeoutMs);
+  });
 }

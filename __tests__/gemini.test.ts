@@ -55,7 +55,7 @@ describe('analyzeFoodText', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toContain('gemini-2.5-flash:generateContent');
+    expect(url).toContain('gemini-2.0-flash-lite:generateContent');
     expect(url).not.toContain('key=');
     expect((init.headers as Record<string, string>)['x-goog-api-key']).toBe(API_KEY);
 
@@ -107,8 +107,8 @@ describe('analyzeFoodText', () => {
 
     expect(result.name).toBe('Яблоко');
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[0][0]).toContain('gemini-2.5-flash');
-    expect(fetchMock.mock.calls[1][0]).toContain('gemini-2.0-flash');
+    expect(fetchMock.mock.calls[0][0]).toContain('gemini-2.0-flash-lite');
+    expect(fetchMock.mock.calls[1][0]).toContain('gemini-2.5-flash-lite');
   });
 
   it('analyzeFoodText_ShouldNotRetry_WhenQuotaIsZero', async () => {

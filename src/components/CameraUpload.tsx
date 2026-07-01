@@ -54,8 +54,10 @@ export default function CameraUpload({ onConfirm }: Props) {
           msg = t('camera.errorNotConfigured');
         } else if (res.status === 429 && data.code === 'DAILY_LIMIT') {
           msg = t('camera.errorDailyLimit');
-        } else if (res.status === 429) {
+        } else if (res.status === 429 || data.code === 'GEMINI_QUOTA') {
           msg = t('camera.errorQuota');
+        } else if (res.status === 504 || data.code === 'TIMEOUT') {
+          msg = t('camera.errorTimeout');
         } else {
           msg = data.error || t('camera.errorAnalysis');
         }
