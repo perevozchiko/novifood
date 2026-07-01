@@ -12,6 +12,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Locale } from '@/lib/i18n';
 import { translate, type TranslationKey } from '@/lib/i18n';
+import { readSpeechLocale, writeSpeechLocale } from '@/lib/speech-lang';
 
 const STORAGE_KEY = 'lang';
 
@@ -29,17 +30,24 @@ function readLocale(): Locale {
 interface LanguageContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
+  speechLocale: Locale;
+  setSpeechLocale: (locale: Locale) => void;
   t: (key: TranslationKey, ...args: (string | number)[]) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
   locale: 'en',
   setLocale: () => {},
+  speechLocale: 'en',
+  setSpeechLocale: () => {},
   t: (key) => key,
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(readLocale);
+  const [speechLocale, setSpeechLocaleState] = useState<Locale>(() =>
+    readSpeechLocale(readLocale()),
+  );
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -55,12 +63,20 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = next;
   }, []);
 
+  const setSpeechLocale = useCallback((next: Locale) => {
+    setSpeechLocaleState(next);
+    writeSpeechLocale(next);
+  }, []);
+
   const t = useCallback(
     (key: TranslationKey, ...args: (string | number)[]) => translate(locale, key, ...args),
     [locale],
   );
 
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+  const value = useMemo(
+    () => ({ locale, setLocale, speechLocale, setSpeechLocale, t }),
+    [locale, setLocale, speechLocale, setSpeechLocale, t],
+  );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }

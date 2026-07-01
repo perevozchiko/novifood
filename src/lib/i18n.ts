@@ -102,6 +102,10 @@ const dictionaries = {
     'voice.errorNotConfigured': 'AI recognition is not available. The administrator needs to configure the API key.',
     'voice.errorSave': 'Failed to save.',
     'voice.stop': 'Stop',
+    'voice.previewLabel': 'Recognized text',
+    'voice.analyze': 'Analyze',
+    'voice.rerecord': 'Record again',
+    'voice.errorRecognition': 'Speech recognition failed. Try again.',
 
     // PortionSelector
     'portion.label': 'Portion',
@@ -165,6 +169,8 @@ const dictionaries = {
     'settings.theme.light': 'Light',
     'settings.theme.dark': 'Dark',
     'settings.language': 'Language',
+    'settings.speechLanguage': 'Speech recognition language',
+    'settings.speechLanguageHint': 'Language used when converting voice to text',
     'settings.version': 'Version',
     'settings.pwaHint': 'Install the app via your browser menu → “Add to Home Screen”.',
     'update.current': 'Current version',
@@ -341,6 +347,10 @@ const dictionaries = {
     'voice.errorNotConfigured': 'Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ.',
     'voice.errorSave': 'Не удалось сохранить.',
     'voice.stop': 'Стоп',
+    'voice.previewLabel': 'Распознанный текст',
+    'voice.analyze': 'Отправить на анализ',
+    'voice.rerecord': 'Записать заново',
+    'voice.errorRecognition': 'Не удалось распознать речь. Попробуйте снова.',
 
     // PortionSelector
     'portion.label': 'Порция',
@@ -404,6 +414,8 @@ const dictionaries = {
     'settings.theme.light': 'Светлая',
     'settings.theme.dark': 'Тёмная',
     'settings.language': 'Язык',
+    'settings.speechLanguage': 'Язык распознавания речи',
+    'settings.speechLanguageHint': 'Язык, на котором вы говорите в микрофон',
     'settings.version': 'Версия',
     'settings.pwaHint': 'Установите приложение через меню браузера → «На экран „Домой“».',
     'update.current': 'Текущая версия',

@@ -13,9 +13,11 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import { PwaUpdateProvider } from '@/providers/PwaUpdateProvider';
 import type { Locale as Lang } from '@/lib/i18n';
+import { SPEECH_LANG_STORAGE_KEY } from '@/lib/speech-lang';
 
 interface Options {
   lang?: Lang;
+  speechLang?: Lang;
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
@@ -32,7 +34,7 @@ export function renderWithProviders(
   ui: React.ReactElement,
   options: Options = {},
 ): RenderResult {
-  const { lang = 'en' } = options;
+  const { lang = 'en', speechLang = lang } = options;
 
   /*
     Pre-seed localStorage so LanguageProvider's useEffect picks up the
@@ -41,6 +43,7 @@ export function renderWithProviders(
     be in the correct language state after this call returns.
   */
   localStorage.setItem('lang', lang);
+  localStorage.setItem(SPEECH_LANG_STORAGE_KEY, speechLang);
 
   return render(ui, { wrapper: Wrapper });
 }
