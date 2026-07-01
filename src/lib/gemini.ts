@@ -35,10 +35,16 @@ const MODELS = [
 ] as const;
 
 /** Per-model fetch timeout — keeps the fallback chain within Vercel's 30s limit. */
-const PER_REQUEST_TIMEOUT_MS = 8_000;
+const PER_REQUEST_TIMEOUT_MS = 5_000;
 
 /** Total wall-clock budget for trying all models in one API call. */
-const TOTAL_DEADLINE_MS = 22_000;
+const TOTAL_DEADLINE_MS = 12_000;
+
+/** Stop after this many free-tier quota hits — further models are likely exhausted too. */
+const MAX_FREE_TIER_ATTEMPTS = 2;
+
+/** Stop after this many 503 responses — models are overloaded cluster-wide. */
+const MAX_UNAVAILABLE_ATTEMPTS = 2;
 
 const IMAGE_PROMPT = `Analyse the food in this photo.
 Respond ONLY with a valid JSON object. Do not include markdown codeblocks, wrapping, or explanations.
@@ -74,6 +80,17 @@ export class GeminiError extends Error {
 }
 
 /* Extract a short human-readable message from a Gemini error response body. */
+function parseRetrySeconds(raw: string): number | null {
+  const match = raw.match(/retry in ([\d.]+)s/i);
+  if (!match) return null;
+  const seconds = Math.ceil(Number(match[1]));
+  return Number.isFinite(seconds) ? seconds : null;
+}
+
+function isFreeTierQuotaZero(body: string, raw: string): boolean {
+  return raw.includes('limit: 0') && /free_tier|FreeTier/i.test(body);
+}
+
 function parseGeminiError(status: number, body: string, model: string): GeminiError {
   // Log the full body on the server so developers can inspect it.
   console.error(`Gemini API error [${model}] ${status}:`, body);
@@ -81,13 +98,14 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
   try {
     const json = JSON.parse(body) as { error?: { message?: string; status?: string } };
     const raw = json.error?.message ?? '';
+    const retrySeconds = parseRetrySeconds(raw);
 
     if (status === 429) {
       /*
         "limit: 0" without a model name usually means the Cloud project has no
         quota at all (wrong key source or billing not set up).
-        "limit: 0, model: …" means this specific model has no free-tier quota —
-        try the next model in the fallback chain.
+        "limit: 0, model: …" with free_tier metrics means this model's free
+        quota is exhausted — try one more model, then fail fast.
       */
       if (raw.includes('limit: 0') && !/model:\s*[\w.-]+/i.test(raw)) {
         return new GeminiError(
@@ -97,7 +115,26 @@ function parseGeminiError(status: number, body: string, model: string): GeminiEr
           'NOT_CONFIGURED',
         );
       }
-      return new GeminiError('AI quota exceeded. Please try again later.', 429, 'GEMINI_QUOTA');
+
+      if (isFreeTierQuotaZero(body, raw)) {
+        const waitHint = retrySeconds ? ` Try again in ~${retrySeconds}s.` : '';
+        return new GeminiError(
+          `AI free-tier quota exhausted.${waitHint}`,
+          429,
+          'FREE_TIER_EXHAUSTED',
+        );
+      }
+
+      const waitHint = retrySeconds ? ` Try again in ~${retrySeconds}s.` : '';
+      return new GeminiError(`AI quota exceeded.${waitHint}`, 429, 'GEMINI_QUOTA');
+    }
+
+    if (status === 503) {
+      return new GeminiError(
+        'AI models are temporarily overloaded. Please try again in a few minutes.',
+        503,
+        'GEMINI_UNAVAILABLE',
+      );
     }
 
     if (status === 401 || status === 403) {
@@ -210,6 +247,8 @@ async function withModelFallback(
 
   const deadline = Date.now() + TOTAL_DEADLINE_MS;
   let lastError: GeminiError | null = null;
+  let freeTierHits = 0;
+  let unavailableHits = 0;
 
   for (const model of MODELS) {
     const remaining = deadline - Date.now();
@@ -226,6 +265,31 @@ async function withModelFallback(
       if (err instanceof GeminiError && err.code === 'NOT_CONFIGURED') {
         throw err;
       }
+
+      if (err instanceof GeminiError && err.code === 'FREE_TIER_EXHAUSTED') {
+        freeTierHits++;
+        lastError = err;
+        console.warn(`Model ${model} free-tier quota exhausted (${freeTierHits}/${MAX_FREE_TIER_ATTEMPTS})`);
+        if (freeTierHits >= MAX_FREE_TIER_ATTEMPTS) {
+          throw new GeminiError(
+            'AI free-tier quota exhausted for all available models. Wait a minute and try again, or enable billing in Google AI Studio.',
+            429,
+            'GEMINI_QUOTA',
+          );
+        }
+        continue;
+      }
+
+      if (err instanceof GeminiError && err.code === 'GEMINI_UNAVAILABLE') {
+        unavailableHits++;
+        lastError = err;
+        console.warn(`Model ${model} overloaded (${unavailableHits}/${MAX_UNAVAILABLE_ATTEMPTS})`);
+        if (unavailableHits >= MAX_UNAVAILABLE_ATTEMPTS) {
+          throw err;
+        }
+        continue;
+      }
+
       if (err instanceof GeminiError && (RETRYABLE_STATUSES.has(err.status) || err.code === 'TIMEOUT')) {
         console.warn(`Model ${model} unavailable (${err.status}${err.code ? `/${err.code}` : ''}), trying next model…`);
         lastError = err;

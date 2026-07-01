@@ -56,6 +56,8 @@ export default function CameraUpload({ onConfirm }: Props) {
           msg = t('camera.errorDailyLimit');
         } else if (res.status === 429 || data.code === 'GEMINI_QUOTA') {
           msg = t('camera.errorQuota');
+        } else if (res.status === 503 || data.code === 'GEMINI_UNAVAILABLE') {
+          msg = t('camera.errorQuota');
         } else if (res.status === 504 || data.code === 'TIMEOUT') {
           msg = t('camera.errorTimeout');
         } else {

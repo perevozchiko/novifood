@@ -180,6 +180,8 @@ export default function VoiceInput({ onConfirm }: Props) {
           msg = t('voice.errorDailyLimit');
         } else if (res.status === 429 || data.code === 'GEMINI_QUOTA') {
           msg = t('voice.errorQuota');
+        } else if (res.status === 503 || data.code === 'GEMINI_UNAVAILABLE') {
+          msg = t('voice.errorQuota');
         } else if (res.status === 504 || data.code === 'TIMEOUT') {
           msg = t('voice.errorTimeout');
         } else {
