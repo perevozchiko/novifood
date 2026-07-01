@@ -55,7 +55,7 @@ describe('analyzeFoodText', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toContain('gemini-2.5-flash:generateContent');
+    expect(url).toContain('gemini-2.0-flash-lite:generateContent');
     expect(url).not.toContain('key=');
     expect((init.headers as Record<string, string>)['x-goog-api-key']).toBe(API_KEY);
 
@@ -107,8 +107,57 @@ describe('analyzeFoodText', () => {
 
     expect(result.name).toBe('Яблоко');
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[0][0]).toContain('gemini-2.5-flash');
-    expect(fetchMock.mock.calls[1][0]).toContain('gemini-2.0-flash');
+    expect(fetchMock.mock.calls[0][0]).toContain('gemini-2.0-flash-lite');
+    expect(fetchMock.mock.calls[1][0]).toContain('gemini-2.5-flash-lite');
+  });
+
+  it('analyzeFoodText_ShouldFailFast_WhenFreeTierQuotaZeroOnTwoModels', async () => {
+    const quotaBody = {
+      error: {
+        message:
+          'Quota exceeded limit: 0, model: gemini-2.0-flash-lite. Please retry in 30s.',
+      },
+    };
+    const fetchMock = mockFetchSequence(
+      { status: 429, body: JSON.stringify({ ...quotaBody, details: [{ quotaId: 'GenerateRequestsPerDayPerProjectPerModel-FreeTier' }] }) },
+      { status: 429, body: JSON.stringify({ ...quotaBody, details: [{ quotaId: 'GenerateRequestsPerDayPerProjectPerModel-FreeTier' }] }) },
+      {
+        status: 200,
+        body: geminiJsonResponse(
+          '{"name":"Яблоко","calories":95,"protein":0,"fat":0,"carbs":25}',
+        ),
+      },
+    );
+
+    await expect(analyzeFoodText('яблоко')).rejects.toMatchObject({
+      code: 'GEMINI_QUOTA',
+      status: 429,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('analyzeFoodText_ShouldFailFast_WhenTwoModelsReturn503', async () => {
+    const unavailable = {
+      error: { message: 'This model is currently experiencing high demand.' },
+    };
+    const fetchMock = mockFetchSequence(
+      { status: 503, body: unavailable },
+      { status: 503, body: unavailable },
+      {
+        status: 200,
+        body: geminiJsonResponse(
+          '{"name":"Яблоко","calories":95,"protein":0,"fat":0,"carbs":25}',
+        ),
+      },
+    );
+
+    await expect(analyzeFoodText('яблоко')).rejects.toMatchObject({
+      code: 'GEMINI_UNAVAILABLE',
+      status: 503,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('analyzeFoodText_ShouldNotRetry_WhenQuotaIsZero', async () => {

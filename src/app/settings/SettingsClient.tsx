@@ -31,7 +31,7 @@ interface Props {
 }
 
 export default function SettingsClient({ settings }: Props) {
-  const { t, locale, setLocale } = useT();
+  const { t, locale, setLocale, speechLocale, setSpeechLocale } = useT();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const { version, needRefresh, checking, applyUpdate, checkForUpdate, supported } = usePwaUpdate();
@@ -301,6 +301,36 @@ export default function SettingsClient({ settings }: Props) {
                 {lang.toUpperCase()}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Speech recognition language */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {t('settings.speechLanguage')}
+              </span>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                {t('settings.speechLanguageHint')}
+              </p>
+            </div>
+            <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 shrink-0">
+              {(['ru', 'en'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setSpeechLocale(lang)}
+                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                    speechLocale === lang
+                      ? 'bg-green-600 text-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

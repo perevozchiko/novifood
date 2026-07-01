@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Loader2, StopCircle } from 'lucide-react';
+import { Mic, MicOff, Loader2, StopCircle, RotateCcw } from 'lucide-react';
 import PortionSelector from './PortionSelector';
 import type { FoodAnalysis, Meal, MealType } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
+import { speechLocaleToBcp47 } from '@/lib/speech-lang';
 
 /*
   VoiceInput component.
 
   Records a spoken food description via the browser Web Speech API,
-  sends the transcript to /api/analyze-voice, then shows the AI result
-  with a PortionSelector so the user can adjust the serving before confirming.
+  shows the recognized text for review, then sends to /api/analyze-voice
+  only when the user confirms — with a PortionSelector on the AI result.
 */
 
 /* Minimal Web Speech API types — not yet in TypeScript's DOM lib */
@@ -60,17 +61,14 @@ declare global {
 
 const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-/** Pause after speech before auto-submit (iOS often skips isFinal until stop). */
-const SILENCE_MS = 1500;
-
 interface Props {
   onConfirm: (meal: Omit<Meal, 'id' | 'created_at'>) => Promise<void>;
 }
 
-type Status = 'idle' | 'listening' | 'analysing' | 'review' | 'saving';
+type Status = 'idle' | 'listening' | 'preview' | 'analysing' | 'review' | 'saving';
 
 export default function VoiceInput({ onConfirm }: Props) {
-  const { t, locale } = useT();
+  const { t, speechLocale } = useT();
   const [status, setStatus] = useState<Status>('idle');
   const [transcript, setTranscript] = useState('');
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(null);
@@ -81,12 +79,10 @@ export default function VoiceInput({ onConfirm }: Props) {
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const finalTranscriptRef = useRef('');
   const interimTranscriptRef = useRef('');
-  const submittedRef = useRef(false);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listeningEndedRef = useRef(false);
 
   useEffect(() => {
     return () => {
-      clearSilenceTimer();
       abortListening();
     };
   }, []);
@@ -96,19 +92,10 @@ export default function VoiceInput({ onConfirm }: Props) {
     return window.SpeechRecognition ?? window.webkitSpeechRecognition;
   }
 
-  function clearSilenceTimer() {
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-  }
-
   function abortListening() {
-    clearSilenceTimer();
     const rec = recognitionRef.current;
     recognitionRef.current = null;
     if (!rec) return;
-    /* Defer so Safari/iOS releases the mic after the current speech event. */
     queueMicrotask(() => {
       try {
         rec.abort();
@@ -118,46 +105,39 @@ export default function VoiceInput({ onConfirm }: Props) {
     });
   }
 
-  function finishListening(text: string) {
+  function getCombinedTranscript() {
+    return (finalTranscriptRef.current + interimTranscriptRef.current).trim();
+  }
+
+  function showPreview(text: string) {
     const trimmed = text.trim();
-    if (!trimmed || submittedRef.current) return;
+    if (!trimmed) {
+      setStatus('idle');
+      return;
+    }
 
-    submittedRef.current = true;
-    clearSilenceTimer();
+    listeningEndedRef.current = true;
     abortListening();
-
     setTranscript(trimmed);
     finalTranscriptRef.current = trimmed;
     interimTranscriptRef.current = '';
     setIsInterim(false);
-    setStatus('analysing');
-    analyseTranscript(trimmed);
-  }
-
-  function scheduleSilenceSubmit(text: string) {
-    clearSilenceTimer();
-    const trimmed = text.trim();
-    if (!trimmed || submittedRef.current) return;
-
-    silenceTimerRef.current = setTimeout(() => {
-      finishListening(trimmed);
-    }, SILENCE_MS);
+    setStatus('preview');
   }
 
   function stopListening() {
-    const text = (finalTranscriptRef.current + interimTranscriptRef.current).trim();
-    if (text) {
-      finishListening(text);
-      return;
-    }
-
-    submittedRef.current = true;
+    listeningEndedRef.current = true;
     abortListening();
-    setStatus('idle');
+    const text = getCombinedTranscript();
+    if (text) {
+      showPreview(text);
+    } else {
+      setStatus('idle');
+    }
   }
 
   function handleReset() {
-    submittedRef.current = false;
+    listeningEndedRef.current = false;
     abortListening();
     setStatus('idle');
     setTranscript('');
@@ -165,6 +145,19 @@ export default function VoiceInput({ onConfirm }: Props) {
     setError(null);
     setPortion(1);
     setMealType('');
+    finalTranscriptRef.current = '';
+    interimTranscriptRef.current = '';
+  }
+
+  function handleRerecord() {
+    handleReset();
+    startListening();
+  }
+
+  function handleAnalyze() {
+    const text = transcript.trim();
+    if (!text) return;
+    analyseTranscript(text);
   }
 
   async function analyseTranscript(text: string) {
@@ -185,8 +178,12 @@ export default function VoiceInput({ onConfirm }: Props) {
           msg = t('voice.errorNotConfigured');
         } else if (res.status === 429 && data.code === 'DAILY_LIMIT') {
           msg = t('voice.errorDailyLimit');
-        } else if (res.status === 429) {
+        } else if (res.status === 429 || data.code === 'GEMINI_QUOTA') {
           msg = t('voice.errorQuota');
+        } else if (res.status === 503 || data.code === 'GEMINI_UNAVAILABLE') {
+          msg = t('voice.errorQuota');
+        } else if (res.status === 504 || data.code === 'TIMEOUT') {
+          msg = t('voice.errorTimeout');
         } else {
           msg = data.error || t('voice.errorAnalysis');
         }
@@ -197,9 +194,8 @@ export default function VoiceInput({ onConfirm }: Props) {
       setAnalysis(data);
       setStatus('review');
     } catch (err: unknown) {
-      submittedRef.current = false;
       setError(err instanceof Error ? err.message : t('voice.errorAnalysis'));
-      setStatus('idle');
+      setStatus('preview');
     }
   }
 
@@ -213,7 +209,7 @@ export default function VoiceInput({ onConfirm }: Props) {
     setError(null);
     setTranscript('');
     setIsInterim(false);
-    submittedRef.current = false;
+    listeningEndedRef.current = false;
     finalTranscriptRef.current = '';
     interimTranscriptRef.current = '';
     setAnalysis(null);
@@ -222,7 +218,7 @@ export default function VoiceInput({ onConfirm }: Props) {
     setStatus('listening');
 
     const recognition = new SR();
-    recognition.lang = locale === 'en' ? 'en-US' : 'ru-RU';
+    recognition.lang = speechLocaleToBcp47(speechLocale);
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
@@ -246,24 +242,17 @@ export default function VoiceInput({ onConfirm }: Props) {
       interimTranscriptRef.current = interim;
       setTranscript(display);
       setIsInterim(interim.length > 0);
-
-      const fullText = display.trim();
-      if (interim.length === 0 && finalTranscriptRef.current.trim()) {
-        finishListening(finalTranscriptRef.current.trim());
-      } else if (fullText) {
-        scheduleSilenceSubmit(fullText);
-      }
     };
 
     recognition.onerror = (event: ISpeechRecognitionErrorEvent) => {
-      submittedRef.current = true;
+      listeningEndedRef.current = true;
       abortListening();
       if (event.error === 'no-speech') {
         setError(t('voice.errorNoSpeech'));
       } else if (event.error === 'not-allowed') {
         setError(t('voice.errorNotSupported'));
       } else {
-        setError(t('voice.errorAnalysis'));
+        setError(t('voice.errorRecognition'));
       }
       setStatus('idle');
     };
@@ -272,7 +261,12 @@ export default function VoiceInput({ onConfirm }: Props) {
       if (recognitionRef.current === recognition) {
         recognitionRef.current = null;
       }
-      if (!submittedRef.current) {
+      if (listeningEndedRef.current) return;
+
+      const text = getCombinedTranscript();
+      if (text) {
+        showPreview(text);
+      } else {
         setStatus((prev) => (prev === 'listening' ? 'idle' : prev));
       }
     };
@@ -294,11 +288,7 @@ export default function VoiceInput({ onConfirm }: Props) {
         eaten_at: new Date().toISOString(),
         notes: null,
       });
-      setStatus('idle');
-      setTranscript('');
-      setAnalysis(null);
-      setPortion(1);
-      setMealType('');
+      handleReset();
     } catch {
       setError(t('voice.errorSave'));
       setStatus('review');
@@ -347,6 +337,39 @@ export default function VoiceInput({ onConfirm }: Props) {
         </div>
       )}
 
+      {status === 'preview' && (
+        <div className="space-y-3 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-blue-100 dark:border-blue-900">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            {t('voice.previewLabel')}
+          </p>
+          <textarea
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
+            rows={3}
+            className="w-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 dark:text-gray-100 resize-none"
+            aria-label={t('voice.previewLabel')}
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleRerecord}
+              className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <RotateCcw size={14} />
+              {t('voice.rerecord')}
+            </button>
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={!transcript.trim()}
+              className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+            >
+              {t('voice.analyze')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {status === 'analysing' && (
         <div className="space-y-2">
           {transcript && (
@@ -361,7 +384,7 @@ export default function VoiceInput({ onConfirm }: Props) {
         </div>
       )}
 
-      {error && (
+      {error && status !== 'review' && status !== 'saving' && (
         <p className="text-sm text-red-500 mt-2 px-1">{error}</p>
       )}
 
