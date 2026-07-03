@@ -6,58 +6,19 @@ import PortionSelector from './PortionSelector';
 import type { FoodAnalysis, Meal, MealType } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 import { speechLocaleToBcp47 } from '@/lib/speech-lang';
+import {
+  acquireBuiltInMicrophoneStream,
+  MicrophoneError,
+  releaseMediaStream,
+} from '@/lib/microphone';
 
 /*
   VoiceInput component.
 
-  Records a spoken food description via the browser Web Speech API,
-  shows the recognized text for review, then sends to /api/analyze-voice
-  only when the user confirms — with a PortionSelector on the AI result.
+  Records via the Mac built-in microphone, transcribes in the browser with the
+  Web Speech API (no audio sent to Gemini), then sends text to /api/analyze-voice
+  after user confirmation.
 */
-
-/* Minimal Web Speech API types — not yet in TypeScript's DOM lib */
-interface ISpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface ISpeechRecognitionResult {
-  readonly isFinal: boolean;
-  readonly length: number;
-  item(index: number): ISpeechRecognitionAlternative;
-  [index: number]: ISpeechRecognitionAlternative;
-}
-
-interface ISpeechRecognitionEvent extends Event {
-  readonly resultIndex: number;
-  readonly results: { [index: number]: ISpeechRecognitionResult; readonly length: number };
-}
-
-interface ISpeechRecognitionErrorEvent extends Event {
-  readonly error: string;
-}
-
-interface ISpeechRecognition extends EventTarget {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: ((event: ISpeechRecognitionEvent) => void) | null;
-  onerror: ((event: ISpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-}
-
-type SpeechRecognitionCtor = new () => ISpeechRecognition;
-
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionCtor;
-    webkitSpeechRecognition?: SpeechRecognitionCtor;
-  }
-}
 
 const MEAL_TYPE_KEYS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
@@ -67,6 +28,47 @@ interface Props {
 
 type Status = 'idle' | 'listening' | 'preview' | 'analysing' | 'review' | 'saving';
 
+interface SpeechRecognitionResultEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message?: string;
+}
+
+interface ISpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+}
+
+type SpeechRecognitionConstructor = new () => ISpeechRecognition;
+
+function getSpeechRecognitionClass(): SpeechRecognitionConstructor | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as Window & {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+function resultsToTranscript(results: SpeechRecognitionResultList): string {
+  let text = '';
+  for (let i = 0; i < results.length; i++) {
+    text += results[i][0].transcript;
+  }
+  return text;
+}
+
 export default function VoiceInput({ onConfirm }: Props) {
   const { t, speechLocale } = useT();
   const [status, setStatus] = useState<Status>('idle');
@@ -75,89 +77,79 @@ export default function VoiceInput({ onConfirm }: Props) {
   const [portion, setPortion] = useState(1);
   const [mealType, setMealType] = useState<MealType | ''>('');
   const [error, setError] = useState<string | null>(null);
-  const [isInterim, setIsInterim] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
-  const finalTranscriptRef = useRef('');
-  const interimTranscriptRef = useRef('');
-  const listeningEndedRef = useRef(false);
+  const transcriptRef = useRef('');
+  const stoppedByUserRef = useRef(false);
+  const hadRecognitionErrorRef = useRef(false);
 
   useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState !== 'hidden') return;
+      releaseRecording();
+      setStatus((prev) => (prev === 'listening' ? 'idle' : prev));
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
     return () => {
-      abortListening();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      releaseRecording();
     };
   }, []);
 
-  function getSpeechRecognition(): SpeechRecognitionCtor | undefined {
-    if (typeof window === 'undefined') return undefined;
-    return window.SpeechRecognition ?? window.webkitSpeechRecognition;
-  }
-
-  function abortListening() {
-    const rec = recognitionRef.current;
+  function releaseRecording() {
+    const recognition = recognitionRef.current;
     recognitionRef.current = null;
-    if (!rec) return;
-    queueMicrotask(() => {
+    if (recognition) {
       try {
-        rec.abort();
+        recognition.abort();
       } catch {
         /* already stopped */
       }
-    });
-  }
-
-  function getCombinedTranscript() {
-    return (finalTranscriptRef.current + interimTranscriptRef.current).trim();
-  }
-
-  function showPreview(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed) {
-      setStatus('idle');
-      return;
     }
-
-    listeningEndedRef.current = true;
-    abortListening();
-    setTranscript(trimmed);
-    finalTranscriptRef.current = trimmed;
-    interimTranscriptRef.current = '';
-    setIsInterim(false);
-    setStatus('preview');
+    releaseMediaStream(streamRef.current);
+    streamRef.current = null;
+    transcriptRef.current = '';
+    stoppedByUserRef.current = false;
+    hadRecognitionErrorRef.current = false;
   }
 
-  function stopListening() {
-    listeningEndedRef.current = true;
-    abortListening();
-    const text = getCombinedTranscript();
-    if (text) {
-      showPreview(text);
-    } else {
-      setStatus('idle');
+  function microphoneErrorMessage(err: MicrophoneError): string {
+    if (err.code === 'CONTINUITY_ONLY') {
+      return t('voice.errorContinuityMic');
     }
+    if (err.code === 'NOT_SUPPORTED') {
+      return t('voice.errorNotSupported');
+    }
+    return t('voice.errorNotSupported');
+  }
+
+  function recognitionErrorMessage(code: string): string | null {
+    if (code === 'aborted') return null;
+    if (code === 'no-speech') return t('voice.errorNoSpeech');
+    if (code === 'not-allowed') return t('voice.errorNotSupported');
+    return t('voice.errorRecognition');
   }
 
   function handleReset() {
-    listeningEndedRef.current = false;
-    abortListening();
+    releaseRecording();
     setStatus('idle');
     setTranscript('');
     setAnalysis(null);
     setError(null);
     setPortion(1);
     setMealType('');
-    finalTranscriptRef.current = '';
-    interimTranscriptRef.current = '';
   }
 
   function handleRerecord() {
     handleReset();
-    startListening();
+    void startListening();
   }
 
   function handleAnalyze() {
     const text = transcript.trim();
     if (!text) return;
-    analyseTranscript(text);
+    void analyseTranscript(text);
   }
 
   async function analyseTranscript(text: string) {
@@ -199,79 +191,90 @@ export default function VoiceInput({ onConfirm }: Props) {
     }
   }
 
-  function startListening() {
-    const SR = getSpeechRecognition();
-    if (!SR) {
+  function finishListening() {
+    const text = transcriptRef.current.trim();
+    if (text) {
+      setTranscript(text);
+      setStatus('preview');
+      return;
+    }
+    if (stoppedByUserRef.current || hadRecognitionErrorRef.current) {
+      setError(t('voice.errorNoSpeech'));
+    }
+    setStatus('idle');
+  }
+
+  async function startListening() {
+    const SpeechRecognitionClass = getSpeechRecognitionClass();
+    if (!SpeechRecognitionClass) {
       setError(t('voice.errorNotSupported'));
       return;
     }
 
+    releaseRecording();
     setError(null);
     setTranscript('');
-    setIsInterim(false);
-    listeningEndedRef.current = false;
-    finalTranscriptRef.current = '';
-    interimTranscriptRef.current = '';
     setAnalysis(null);
     setPortion(1);
     setMealType('');
-    setStatus('listening');
 
-    const recognition = new SR();
-    recognition.lang = speechLocaleToBcp47(speechLocale);
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+    try {
+      const stream = await acquireBuiltInMicrophoneStream();
+      streamRef.current = stream;
 
-    recognitionRef.current = recognition;
+      const recognition = new SpeechRecognitionClass();
+      recognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = speechLocaleToBcp47(speechLocale);
 
-    recognition.onresult = (event: ISpeechRecognitionEvent) => {
-      let interim = '';
+      recognition.onresult = (event) => {
+        const text = resultsToTranscript(event.results);
+        transcriptRef.current = text;
+        setTranscript(text);
+      };
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const text = result[0].transcript;
-        if (result.isFinal) {
-          finalTranscriptRef.current += text;
-        } else {
-          interim += text;
+      recognition.onerror = (event) => {
+        const msg = recognitionErrorMessage(event.error);
+        if (msg) {
+          hadRecognitionErrorRef.current = true;
+          setError(msg);
         }
-      }
+      };
 
-      const display = finalTranscriptRef.current + interim;
-      interimTranscriptRef.current = interim;
-      setTranscript(display);
-      setIsInterim(interim.length > 0);
-    };
+      recognition.onend = () => {
+        recognitionRef.current = null;
+        releaseMediaStream(streamRef.current);
+        streamRef.current = null;
+        finishListening();
+        stoppedByUserRef.current = false;
+        hadRecognitionErrorRef.current = false;
+      };
 
-    recognition.onerror = (event: ISpeechRecognitionErrorEvent) => {
-      listeningEndedRef.current = true;
-      abortListening();
-      if (event.error === 'no-speech') {
-        setError(t('voice.errorNoSpeech'));
-      } else if (event.error === 'not-allowed') {
+      setStatus('listening');
+      recognition.start();
+    } catch (err: unknown) {
+      releaseRecording();
+      if (err instanceof MicrophoneError) {
+        setError(microphoneErrorMessage(err));
+      } else if (err instanceof DOMException && err.name === 'NotAllowedError') {
         setError(t('voice.errorNotSupported'));
       } else {
         setError(t('voice.errorRecognition'));
       }
       setStatus('idle');
-    };
+    }
+  }
 
-    recognition.onend = () => {
-      if (recognitionRef.current === recognition) {
-        recognitionRef.current = null;
-      }
-      if (listeningEndedRef.current) return;
-
-      const text = getCombinedTranscript();
-      if (text) {
-        showPreview(text);
-      } else {
-        setStatus((prev) => (prev === 'listening' ? 'idle' : prev));
-      }
-    };
-
-    recognition.start();
+  function stopListening() {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      releaseRecording();
+      setStatus('idle');
+      return;
+    }
+    stoppedByUserRef.current = true;
+    recognition.stop();
   }
 
   async function handleConfirm() {
@@ -300,7 +303,7 @@ export default function VoiceInput({ onConfirm }: Props) {
       {status === 'idle' && (
         <button
           type="button"
-          onClick={startListening}
+          onClick={() => void startListening()}
           className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 rounded-2xl py-3 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
         >
           <Mic size={18} />
@@ -325,9 +328,7 @@ export default function VoiceInput({ onConfirm }: Props) {
             aria-live="polite"
           >
             {transcript ? (
-              <p className={`text-sm ${isInterim ? 'text-gray-500 dark:text-gray-400 italic' : 'text-gray-800 dark:text-gray-200'}`}>
-                {transcript}
-              </p>
+              <p className="text-sm text-gray-800 dark:text-gray-200">{transcript}</p>
             ) : (
               <p className="text-sm text-gray-400 dark:text-gray-500 italic">
                 {t('voice.speakNow')}

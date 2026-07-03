@@ -108,6 +108,8 @@ const dictionaries = {
     'voice.analyze': 'Analyze',
     'voice.rerecord': 'Record again',
     'voice.errorRecognition': 'Speech recognition failed. Try again.',
+    'voice.transcribing': 'Transcribing…',
+    'voice.errorContinuityMic': 'Only iPhone microphones are available. Disable Continuity Camera on your iPhone (Settings → General → AirPlay & Handoff) or use the Mac built-in mic.',
 
     // PortionSelector
     'portion.label': 'Portion',
@@ -355,6 +357,8 @@ const dictionaries = {
     'voice.analyze': 'Отправить на анализ',
     'voice.rerecord': 'Записать заново',
     'voice.errorRecognition': 'Не удалось распознать речь. Попробуйте снова.',
+    'voice.transcribing': 'Распознаю речь…',
+    'voice.errorContinuityMic': 'Доступен только микрофон iPhone. Отключите «Камеру непрерывности» на iPhone (Настройки → Основные → AirPlay и Handoff) или используйте встроенный микрофон Mac.',
 
     // PortionSelector
     'portion.label': 'Порция',

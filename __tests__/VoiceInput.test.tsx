@@ -1,26 +1,49 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import VoiceInput from '@/components/VoiceInput';
 import { renderWithProviders } from './utils/renderWithProviders';
 import { SPEECH_LANG_STORAGE_KEY } from '@/lib/speech-lang';
+import { MicrophoneError } from '@/lib/microphone';
 
-type ResultChunk = { transcript: string; isFinal: boolean };
+const mockAcquire = vi.fn();
+const mockRelease = vi.fn();
+
+vi.mock('@/lib/microphone', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/microphone')>();
+  return {
+    ...actual,
+    acquireBuiltInMicrophoneStream: (...args: unknown[]) => mockAcquire(...args),
+    releaseMediaStream: (...args: unknown[]) => mockRelease(...args),
+  };
+});
 
 class MockSpeechRecognition {
-  lang = '';
   continuous = false;
   interimResults = false;
-  maxAlternatives = 1;
-  onresult: ((event: Event) => void) | null = null;
-  onerror: ((event: Event) => void) | null = null;
+  lang = '';
+  onresult: ((event: { resultIndex: number; results: SpeechRecognitionResultList }) => void) | null =
+    null;
+  onerror: ((event: { error: string }) => void) | null = null;
   onend: (() => void) | null = null;
 
   start = vi.fn(() => {
+    this.continuous = true;
+    this.interimResults = true;
     MockSpeechRecognition.lastInstance = this;
   });
 
   stop = vi.fn(() => {
+    this.onresult?.({
+      resultIndex: 0,
+      results: [
+        {
+          0: { transcript: 'стакан молока 330 грамм' },
+          isFinal: true,
+          length: 1,
+        },
+      ] as unknown as SpeechRecognitionResultList,
+    });
     this.onend?.();
   });
 
@@ -29,43 +52,6 @@ class MockSpeechRecognition {
   });
 
   static lastInstance: MockSpeechRecognition | null = null;
-
-  emitResult(chunks: ResultChunk[], resultIndex = 0) {
-    const results = chunks.map(({ transcript, isFinal }) => {
-      const alt = { transcript, confidence: 0.9 };
-      return {
-        isFinal,
-        length: 1,
-        item: () => alt,
-        0: alt,
-      };
-    });
-
-    this.onresult?.({
-      resultIndex,
-      results: Object.assign(results, { length: results.length }),
-    } as Event);
-  }
-
-  emitError(error: string) {
-    this.onerror?.({ error } as Event);
-  }
-
-  emitEnd() {
-    this.onend?.();
-  }
-}
-
-function installSpeechRecognition() {
-  const SR = MockSpeechRecognition as unknown as typeof window.SpeechRecognition;
-  window.SpeechRecognition = SR;
-  window.webkitSpeechRecognition = SR;
-}
-
-function removeSpeechRecognition() {
-  delete window.SpeechRecognition;
-  delete window.webkitSpeechRecognition;
-  MockSpeechRecognition.lastInstance = null;
 }
 
 const mockAnalysis = {
@@ -76,26 +62,39 @@ const mockAnalysis = {
   carbs: 10,
 };
 
+function makeMockStream() {
+  const track = { stop: vi.fn() };
+  return {
+    getTracks: () => [track],
+  } as unknown as MediaStream;
+}
+
 async function submitTranscriptForAnalysis(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByText('Отправить на анализ'));
 }
 
 describe('VoiceInput', () => {
   beforeEach(() => {
-    installSpeechRecognition();
+    MockSpeechRecognition.lastInstance = null;
+    mockAcquire.mockResolvedValue(makeMockStream());
+    vi.stubGlobal('SpeechRecognition', MockSpeechRecognition);
+    vi.stubGlobal('webkitSpeechRecognition', MockSpeechRecognition);
     localStorage.setItem(SPEECH_LANG_STORAGE_KEY, 'ru');
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockAnalysis),
+      vi.fn().mockImplementation((url: string) => {
+        if (url === '/api/analyze-voice') {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(mockAnalysis),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected fetch: ${url}`));
       }),
     );
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    removeSpeechRecognition();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
@@ -105,17 +104,18 @@ describe('VoiceInput', () => {
     expect(screen.getByText('Голосовой ввод')).toBeDefined();
   });
 
-  it('startListening_ShouldUseSpeechLocaleFromSettings', async () => {
-    localStorage.setItem(SPEECH_LANG_STORAGE_KEY, 'ru');
+  it('startListening_ShouldUseBuiltInMicrophone', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'en', speechLang: 'ru' });
+    renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
 
-    await user.click(screen.getByText('Voice input'));
+    await user.click(screen.getByText('Голосовой ввод'));
 
+    expect(mockAcquire).toHaveBeenCalledTimes(1);
     expect(MockSpeechRecognition.lastInstance?.lang).toBe('ru-RU');
+    expect(MockSpeechRecognition.lastInstance?.continuous).toBe(true);
   });
 
-  it('startListening_ShouldShowSpeakNowPlaceholder_WhenNoSpeechYet', async () => {
+  it('startListening_ShouldShowSpeakNowPlaceholder_WhenRecording', async () => {
     const user = userEvent.setup();
     renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
 
@@ -123,39 +123,17 @@ describe('VoiceInput', () => {
 
     expect(screen.getByText('Слушаю…')).toBeDefined();
     expect(screen.getByText('Начните говорить…')).toBeDefined();
-    expect(MockSpeechRecognition.lastInstance?.interimResults).toBe(true);
   });
 
-  it('onresult_ShouldShowInterimTranscript_WhileSpeaking', async () => {
+  it('stopListening_ShouldShowPreview_WhenStopClicked', async () => {
     const user = userEvent.setup();
     renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
 
     await user.click(screen.getByText('Голосовой ввод'));
-    act(() => {
-      MockSpeechRecognition.lastInstance!.emitResult([
-        { transcript: 'стакан молока', isFinal: false },
-      ]);
-    });
-
-    const liveText = await screen.findByText('стакан молока');
-    expect(liveText.className).toContain('italic');
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('onresult_ShouldShowPreview_WhenSpeechEnds', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
-
-    await user.click(screen.getByText('Голосовой ввод'));
-    act(() => {
-      MockSpeechRecognition.lastInstance!.emitResult([
-        { transcript: 'стакан молока 330 грамм', isFinal: true },
-      ]);
-      MockSpeechRecognition.lastInstance!.emitEnd();
-    });
+    await user.click(screen.getByText('Стоп'));
 
     expect(await screen.findByDisplayValue('стакан молока 330 грамм')).toBeDefined();
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalledWith('/api/transcribe-voice', expect.anything());
   });
 
   it('analyze_ShouldCallApi_WhenUserConfirmsPreview', async () => {
@@ -163,13 +141,9 @@ describe('VoiceInput', () => {
     renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
 
     await user.click(screen.getByText('Голосовой ввод'));
-    act(() => {
-      MockSpeechRecognition.lastInstance!.emitResult([
-        { transcript: 'стакан молока 330 грамм', isFinal: true },
-      ]);
-      MockSpeechRecognition.lastInstance!.emitEnd();
-    });
+    await user.click(screen.getByText('Стоп'));
 
+    await screen.findByDisplayValue('стакан молока 330 грамм');
     await submitTranscriptForAnalysis(user);
 
     await waitFor(() => {
@@ -185,48 +159,26 @@ describe('VoiceInput', () => {
     });
   });
 
-  it('onresult_ShouldNotAutoAnalyze_WhenOnlyInterimResults', async () => {
-    vi.useFakeTimers();
-    renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
-
-    fireEvent.click(screen.getByText('Голосовой ввод'));
-    act(() => {
-      MockSpeechRecognition.lastInstance!.emitResult([
-        { transcript: 'яблоко 150 грамм', isFinal: false },
-      ]);
-    });
-
-    await act(async () => {
-      vi.advanceTimersByTime(2000);
-    });
-
-    expect(fetch).not.toHaveBeenCalled();
-
-    vi.useRealTimers();
-  });
-
-  it('stopListening_ShouldShowPreview_WhenStopClicked', async () => {
+  it('error_ShouldShowContinuityHint_WhenOnlyIphoneMicAvailable', async () => {
+    mockAcquire.mockRejectedValue(new MicrophoneError('CONTINUITY_ONLY'));
     const user = userEvent.setup();
     renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
 
     await user.click(screen.getByText('Голосовой ввод'));
-    act(() => {
-      MockSpeechRecognition.lastInstance!.emitResult([
-        { transcript: 'яблоко', isFinal: false },
-      ]);
-    });
 
-    await user.click(screen.getByText('Стоп'));
-
-    expect(await screen.findByDisplayValue('яблоко')).toBeDefined();
-    expect(fetch).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/Камеру непрерывности/i),
+    ).toBeDefined();
   });
 
   it('error_ShouldShowNotSupported_WhenSpeechRecognitionMissing', () => {
-    removeSpeechRecognition();
+    vi.stubGlobal('SpeechRecognition', undefined);
+    vi.stubGlobal('webkitSpeechRecognition', undefined);
     renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
 
-    fireEvent.click(screen.getByText('Голосовой ввод'));
+    act(() => {
+      screen.getByText('Голосовой ввод').click();
+    });
 
     expect(
       screen.getByText('Голосовой ввод не поддерживается в этом браузере.'),
@@ -239,20 +191,15 @@ describe('VoiceInput', () => {
     renderWithProviders(<VoiceInput onConfirm={onConfirm} />, { lang: 'ru' });
 
     await user.click(screen.getByText('Голосовой ввод'));
-    act(() => {
-      MockSpeechRecognition.lastInstance!.emitResult([
-        { transcript: 'молоко', isFinal: true },
-      ]);
-      MockSpeechRecognition.lastInstance!.emitEnd();
-    });
-
+    await user.click(screen.getByText('Стоп'));
+    await screen.findByDisplayValue('стакан молока 330 грамм');
     await submitTranscriptForAnalysis(user);
 
     await waitFor(() => {
       expect(screen.getByText('Молоко')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('2x'));
+    await user.click(screen.getByText('2x'));
     await user.click(screen.getByText('Добавить в дневник'));
 
     await waitFor(() => {

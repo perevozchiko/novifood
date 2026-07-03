@@ -363,3 +363,67 @@ export async function analyzeFoodText(userText: string): Promise<FoodAnalysis> {
     return tryModelText(apiKey, model, userText, timeoutMs);
   });
 }
+
+function transcribePrompt(locale: 'en' | 'ru'): string {
+  const language = locale === 'en' ? 'English' : 'Russian';
+  return `Transcribe the spoken audio verbatim in ${language}.
+The speaker is describing food or a meal.
+Return ONLY the transcript text — no quotes, labels, markdown, or explanations.`;
+}
+
+async function tryModelTranscribe(
+  apiKey: string,
+  model: string,
+  base64Audio: string,
+  mimeType: string,
+  locale: 'en' | 'ru',
+  timeoutMs: number,
+): Promise<string> {
+  const url = `${BASE_URL}/${model}:generateContent`;
+
+  const response = await fetchGemini(
+    url,
+    {
+      method: 'POST',
+      headers: geminiHeaders(apiKey),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { inline_data: { mime_type: mimeType, data: base64Audio } },
+              { text: transcribePrompt(locale) },
+            ],
+          },
+        ],
+      }),
+    },
+    timeoutMs,
+  );
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw parseGeminiError(response.status, errText, model);
+  }
+
+  const result = await response.json();
+  const text = extractResponseText(result, model).trim();
+  if (!text) {
+    throw new GeminiError('No speech detected in audio.', 422, 'NO_SPEECH');
+  }
+  return text;
+}
+
+/*
+  Transcribe a short voice recording via Gemini.
+  Used instead of the browser Web Speech API so we can pin the Mac built-in mic.
+*/
+export async function transcribeSpeechAudio(
+  base64Audio: string,
+  mimeType: string,
+  locale: 'en' | 'ru',
+): Promise<string> {
+  return withModelFallback('transcribeSpeechAudio', (model, timeoutMs) => {
+    const apiKey = process.env.GEMINI_API_KEY!;
+    return tryModelTranscribe(apiKey, model, base64Audio, mimeType, locale, timeoutMs);
+  });
+}
