@@ -63,6 +63,8 @@ describe('analyzeFoodText', () => {
       contents: Array<{ parts: Array<{ text?: string }> }>;
     };
     expect(payload.contents[0].parts[0].text).toContain('банан 120 грамм');
+    expect(payload.contents[0].parts[0].text).toContain('calorie tracker');
+    expect(payload.contents[0].parts[0].text).toContain('COOKED product');
   });
 
   it('analyzeFoodText_ShouldStripMarkdownFences_WhenModelWrapsJson', async () => {

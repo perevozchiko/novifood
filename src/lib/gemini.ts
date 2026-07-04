@@ -53,14 +53,27 @@ Structure:
 All macro values must be integers representing the full portion visible in the photo.
 Calories in kcal, protein/fat/carbs in grams.`;
 
-const TEXT_PROMPT_PREFIX = `The user described a food item or meal in natural language.
-Extract the nutritional information and respond ONLY with a valid JSON object.
-Do not include markdown codeblocks, wrapping, or explanations.
+const TEXT_PROMPT_PREFIX = `You are a specialized API module for a calorie tracker. Your only job is to parse the user's food description and return macronutrients (calories, protein, fat, carbs).
+
+PRODUCT INTERPRETATION RULES:
+1. Grains, pasta, and legumes:
+   - If the user mentions a dish that is normally eaten cooked (e.g. "buckwheat porridge", "buckwheat", "rice", "oatmeal", "pasta") with words like "porridge", "cooked", "boiled", "prepared", OR gives only the dish name without specifying "dry" or "raw", you MUST use nutritional values for the COOKED product.
+   - Example: "buckwheat porridge", "buckwheat" → ~100–110 kcal per 100 g.
+   - Use dry/raw values ONLY when the user explicitly says "dry", "raw", or "uncooked grain" (e.g. "dry buckwheat", "buckwheat groats") → ~330–340 kcal per 100 g.
+2. Meat and fish:
+   - Unless stated otherwise, assume the product is cooked (baked, fried, grilled, etc.).
+   - If the user explicitly says "raw", use raw nutritional values.
+
+ROUNDING:
+- Calories: round to the nearest whole number (integer).
+- Protein, fat, carbs: round to 1 decimal place.
+
+Respond ONLY with a valid JSON object. Do not include markdown, code fences, or explanations.
 Structure:
-{"name":"Dish Name in Russian","calories":0,"protein":0,"fat":0,"carbs":0}
-All macro values must be integers for the described portion.
-Calories in kcal, protein/fat/carbs in grams.
-If weight is mentioned (e.g. "330 grams"), use it for calculations.
+{"name":"Dish name in Russian","calories":0,"protein":0.0,"fat":0.0,"carbs":0.0}
+All values must reflect the portion described by the user (use stated weight/volume when given).
+Calories in kcal; protein, fat, and carbs in grams.
+
 User input: `;
 
 /*
