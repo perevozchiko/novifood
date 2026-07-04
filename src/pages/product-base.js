@@ -1,4 +1,4 @@
-// src/app/product-base/page.js
+// src/pages/product-base.js
 import React from 'react';
 import ProductBasePage from '../components/ProductBasePage';
 
