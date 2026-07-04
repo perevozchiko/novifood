@@ -374,7 +374,7 @@ export default function VoiceInput({ onConfirm }: Props) {
       {status === 'analysing' && (
         <div className="space-y-2">
           {transcript && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">
               <span className="font-medium">{t('voice.transcript')}</span> {transcript}
             </p>
           )}
@@ -392,7 +392,7 @@ export default function VoiceInput({ onConfirm }: Props) {
       {(status === 'review' || status === 'saving') && analysis && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-blue-100 dark:border-blue-900 mt-2">
           {transcript && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2 truncate">
+            <p className="text-xs text-gray-400 dark:text-gray-500 whitespace-pre-wrap">
               <span className="font-medium">{t('voice.transcript')}</span> {transcript}
             </p>
           )}
