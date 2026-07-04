@@ -11,6 +11,15 @@ const Sidebar = () => {
             <Link href='/'>Главная</Link>
           </li>
           <li>
+            <Link href='/stats'>Stats</Link>
+          </li>
+          <li>
+            <Link href='/product-base'>База продуктов</Link>
+          </li>
+          <li>
+            <Link href='/settings'>Settings</Link>
+          </li>
+          <li>
             <Link href='/product-base'>База продуктов</Link>
           </li>
           {/* Добавьте другие ссылки по необходимости */}
