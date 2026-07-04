@@ -249,10 +249,10 @@ async function fetchGemini(
   Run model fallback with a total deadline so Vercel serverless functions
   do not hit the 30s platform timeout when every model returns 429.
 */
-async function withModelFallback(
+async function withModelFallback<T>(
   label: string,
-  tryModel: (model: string, timeoutMs: number) => Promise<FoodAnalysis>,
-): Promise<FoodAnalysis> {
+  tryModel: (model: string, timeoutMs: number) => Promise<T>,
+): Promise<T> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new GeminiError('GEMINI_API_KEY is not configured.', 500, 'NOT_CONFIGURED');
 
