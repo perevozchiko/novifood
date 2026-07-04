@@ -1,6 +1,6 @@
 // src/app/product-base/page.js
 import React from 'react';
-import ProductBasePage from './ProductBasePage';
+import ProductBasePage from '../components/ProductBasePage';
 
 const ProductBase = () => {
   return <ProductBasePage />;
