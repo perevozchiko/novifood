@@ -16,7 +16,8 @@ const dictionaries = {
     'nav.diary': 'Diary',
     'nav.history': 'History',
     'nav.weight': 'Weight',
-    'nav.settings': 'Settings',
+    'nav.products': 'Products',
+  'nav.settings': 'Settings',
 
     // Home / Diary
     'diary.empty': 'No entries today',
@@ -136,7 +137,8 @@ const dictionaries = {
     'weight.deleteError': 'Failed to delete. Try again.',
 
     // Settings
-    'settings.title': 'Daily Goals',
+    'nav.products': 'Продукты',
+  'settings.title': 'Цели КБЖУ',
     'settings.subtitle': 'Your daily targets',
     'settings.calories': 'Calories',
     'settings.protein': 'Protein',
