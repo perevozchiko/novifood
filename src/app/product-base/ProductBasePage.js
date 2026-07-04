@@ -1,4 +1,4 @@
-// src/components/ProductBasePage.js
+// src/app/product-base/ProductBasePage.js
 import React from 'react';
 
 const ProductBasePage = () => {

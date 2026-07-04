@@ -20,9 +20,14 @@ const Sidebar = () => {
             <Link href='/settings'>Settings</Link>
           </li>
           <li>
-            <Link href='/product-base'>База продуктов</Link>
+            <Link href='/diary'>Diary</Link>
           </li>
-          {/* Добавьте другие ссылки по необходимости */}
+          <li>
+            <Link href='/history'>History</Link>
+          </li>
+          <li>
+            <Link href='/weight'>Weight</Link>
+          </li>
         </ul>
       </nav>
     </div>
