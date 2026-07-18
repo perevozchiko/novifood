@@ -70,7 +70,7 @@ function makeMockStream() {
 }
 
 async function submitTranscriptForAnalysis(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByText('Отправить на анализ'));
+  await user.click(screen.getByText('Рассчитать с ИИ'));
 }
 
 describe('VoiceInput', () => {

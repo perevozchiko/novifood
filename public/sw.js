@@ -1,6 +1,6 @@
 /*
   NoviFood Service Worker — generated at build time. Do not edit by hand.
-  BUILD_ID: 99f3594
+  BUILD_ID: de64c0c
 
   Update strategy (prompt):
   - A new build changes this file and installs a waiting worker.
@@ -8,7 +8,7 @@
   - Foreground checks (focus / visibility) help installed iOS PWAs pick up updates.
 */
 
-const CACHE_NAME = 'novifood-99f3594';
+const CACHE_NAME = 'novifood-de64c0c';
 const OFFLINE_PAGE = '/offline';
 const PRECACHE = [OFFLINE_PAGE, '/'];
 

@@ -39,7 +39,7 @@ describe('analyzeFoodText', () => {
     const fetchMock = mockFetchSequence({
       status: 200,
       body: geminiJsonResponse(
-        '{"name":"Банан","calories":105,"protein":1,"fat":0,"carbs":27}',
+        '{"name":"Банан","portionGrams":120,"calories":89,"protein":1,"fat":0,"carbs":23}',
       ),
     });
 
@@ -47,10 +47,11 @@ describe('analyzeFoodText', () => {
 
     expect(result).toEqual({
       name: 'Банан',
-      calories: 105,
+      portionGrams: 120,
+      calories: 89,
       protein: 1,
       fat: 0,
-      carbs: 27,
+      carbs: 23,
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);

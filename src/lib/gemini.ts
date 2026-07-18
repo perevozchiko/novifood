@@ -1,4 +1,4 @@
-import type { FoodAnalysis } from '@/types';
+import type { FoodAnalysis, VoiceFoodAnalysis } from '@/types';
 
 /*
   Server-only Gemini integration.
@@ -53,7 +53,7 @@ Structure:
 All macro values must be integers representing the full portion visible in the photo.
 Calories in kcal, protein/fat/carbs in grams.`;
 
-const TEXT_PROMPT_PREFIX = `You are a specialized API module for a calorie tracker. Your only job is to parse the user's food description and return macronutrients (calories, protein, fat, carbs).
+const TEXT_PROMPT_PREFIX = `You are a specialized API module for a calorie tracker. Your only job is to parse the user's food description and return a food name, estimated serving weight, and macronutrients per 100 grams.
 
 PRODUCT INTERPRETATION RULES:
 1. Grains, pasta, and legumes:
@@ -70,8 +70,9 @@ ROUNDING:
 
 Respond ONLY with a valid JSON object. Do not include markdown, code fences, or explanations.
 Structure:
-{"name":"Dish name in Russian","calories":0,"protein":0.0,"fat":0.0,"carbs":0.0}
-All values must reflect the portion described by the user (use stated weight/volume when given).
+{"name":"Dish name in Russian","portionGrams":100,"calories":0,"protein":0.0,"fat":0.0,"carbs":0.0}
+portionGrams is the estimated serving weight from the user's text; use 100 when no portion can be inferred.
+calories, protein, fat, and carbs are values PER 100 GRAMS, not for the serving.
 Calories in kcal; protein, fat, and carbs in grams.
 
 User input: `;
@@ -333,7 +334,7 @@ async function tryModelText(
   model: string,
   userText: string,
   timeoutMs: number,
-): Promise<FoodAnalysis> {
+): Promise<VoiceFoodAnalysis> {
   const url = `${BASE_URL}/${model}:generateContent`;
 
   const response = await fetchGemini(
@@ -363,14 +364,27 @@ async function tryModelText(
   const text = extractResponseText(result, model);
 
   const cleanJson = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(cleanJson) as FoodAnalysis;
+  const parsed = JSON.parse(cleanJson) as Partial<VoiceFoodAnalysis>;
+  if (!parsed.name || typeof parsed.name !== 'string') {
+    throw new GeminiError('Gemini returned an invalid food response.', 502, 'INVALID_RESPONSE');
+  }
+  const number = (value: unknown, fallback = 0) =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback;
+  return {
+    name: parsed.name.trim(),
+    portionGrams: number(parsed.portionGrams, 100) || 100,
+    calories: number(parsed.calories),
+    protein: number(parsed.protein),
+    fat: number(parsed.fat),
+    carbs: number(parsed.carbs),
+  };
 }
 
 /*
   Send a natural-language food description to Gemini and parse the macro response.
   Uses the same model fallback chain as analyzeFood.
 */
-export async function analyzeFoodText(userText: string): Promise<FoodAnalysis> {
+export async function analyzeFoodText(userText: string): Promise<VoiceFoodAnalysis> {
   return withModelFallback('analyzeFoodText', (model, timeoutMs) => {
     const apiKey = process.env.GEMINI_API_KEY!;
     return tryModelText(apiKey, model, userText, timeoutMs);
