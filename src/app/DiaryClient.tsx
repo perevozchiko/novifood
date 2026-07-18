@@ -12,7 +12,6 @@ import { useState } from 'react';
 import MacroSummary from '@/components/MacroSummary';
 import MealCard from '@/components/MealCard';
 import AddMealForm from '@/components/AddMealForm';
-import CameraUpload from '@/components/CameraUpload';
 import VoiceInput from '@/components/VoiceInput';
 import WaterTracker from '@/components/WaterTracker';
 import { addMeal, deleteMeal, updateMeal } from '@/lib/meals';
@@ -62,6 +61,10 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
         </div>
       )}
 
+      <div className="mb-6">
+        <VoiceInput onConfirm={handleAdd} />
+      </div>
+
       <MacroSummary meals={meals} settings={settings} />
 
       <div className="space-y-3 mb-6">
@@ -80,9 +83,7 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
 
       <WaterTracker initialEntries={initialWater} goalMl={settings.water_goal_ml ?? 2000} />
 
-      <div className="space-y-3 mt-6">
-        <CameraUpload onConfirm={handleAdd} />
-        <VoiceInput onConfirm={handleAdd} />
+      <div className="mt-6">
         <AddMealForm onAdd={handleAdd} />
       </div>
     </>
