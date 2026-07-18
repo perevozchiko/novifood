@@ -74,21 +74,6 @@ const dictionaries = {
     'addMeal.errorName': 'Enter dish name',
     'addMeal.errorCalories': 'Enter calories',
 
-    // CameraUpload
-    'camera.button': 'Recognise with AI',
-    'camera.analysing': 'Analysing…',
-    'camera.confirm': 'Add to diary',
-    'camera.confirmAdding': 'Adding…',
-    'camera.retry': 'Try again',
-    'camera.cancel': 'Cancel',
-    'camera.errorAnalysis': 'Failed to analyse photo. Please try again.',
-    'camera.errorQuota': 'AI service is temporarily unavailable. Try again in a few minutes.',
-    'camera.errorTimeout': 'Analysis took too long. Please try again.',
-    'camera.errorDailyLimit': 'Daily AI limit reached (50 analyses). Resets at midnight UTC.',
-    'camera.errorNotConfigured': 'AI recognition is not available. The administrator needs to configure the API key.',
-    'camera.errorSave': 'Failed to save.',
-    'camera.portion': 'Portion',
-
     // VoiceInput
     'voice.button': 'Voice input',
     'voice.listening': 'Listening…',
@@ -346,21 +331,6 @@ const dictionaries = {
     'addMeal.cancel': 'Отмена',
     'addMeal.errorName': 'Введите название блюда',
     'addMeal.errorCalories': 'Введите калории',
-
-    // CameraUpload
-    'camera.button': 'Распознать ИИ',
-    'camera.analysing': 'Анализирую…',
-    'camera.confirm': 'Добавить в дневник',
-    'camera.confirmAdding': 'Добавление…',
-    'camera.retry': 'Попробовать снова',
-    'camera.cancel': 'Отмена',
-    'camera.errorAnalysis': 'Не удалось проанализировать фото. Попробуйте ещё раз.',
-    'camera.errorQuota': 'Сервис ИИ временно недоступен. Попробуйте через несколько минут.',
-    'camera.errorTimeout': 'Анализ занял слишком много времени. Попробуйте снова.',
-    'camera.errorDailyLimit': 'Дневной лимит ИИ исчерпан (50 анализов). Сбрасывается в полночь по UTC.',
-    'camera.errorNotConfigured': 'Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ.',
-    'camera.errorSave': 'Не удалось сохранить.',
-    'camera.portion': 'Порция',
 
     // VoiceInput
     'voice.button': 'Голосовой ввод',

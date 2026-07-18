@@ -57,7 +57,7 @@ Or apply each file manually in the Supabase SQL editor:
 >
 > **If migration 0004 is not applied:** settings/history/stats/diary fail with `column settings.user_id does not exist` (HTTP 400).
 >
-> **If `GEMINI_API_KEY` is not set:** the "Распознать ИИ" and "Голосовой ввод" buttons show "Распознавание ИИ недоступно. Администратору необходимо настроить API-ключ."
+> **If `GEMINI_API_KEY` is not set:** voice food analysis is unavailable.
 
 ### 3. Verify AI key
 

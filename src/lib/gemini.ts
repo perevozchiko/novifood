@@ -1,9 +1,9 @@
-import type { FoodAnalysis, VoiceFoodAnalysis } from '@/types';
+import type { VoiceFoodAnalysis } from '@/types';
 
 /*
   Server-only Gemini integration.
 
-  Called exclusively from the /api/analyze-food route so that
+  Called exclusively from server API routes so that
   GEMINI_API_KEY never reaches the browser bundle.
 
   Models are tried in order. If a model returns 429 (quota exhausted)
@@ -45,13 +45,6 @@ const MAX_FREE_TIER_ATTEMPTS = 2;
 
 /** Stop after this many 503 responses — models are overloaded cluster-wide. */
 const MAX_UNAVAILABLE_ATTEMPTS = 2;
-
-const IMAGE_PROMPT = `Analyse the food in this photo.
-Respond ONLY with a valid JSON object. Do not include markdown codeblocks, wrapping, or explanations.
-Structure:
-{"name":"Dish Name in Russian","calories":0,"protein":0,"fat":0,"carbs":0}
-All macro values must be integers representing the full portion visible in the photo.
-Calories in kcal, protein/fat/carbs in grams.`;
 
 const TEXT_PROMPT_PREFIX = `You are a specialized API module for a calorie tracker. Your only job is to parse the user's food description and return a food name, estimated serving weight, and macronutrients per 100 grams.
 
@@ -177,47 +170,6 @@ function extractResponseText(result: unknown, model: string): string {
   return text;
 }
 
-/* Send a base64-encoded JPEG to a specific model and parse the macro response. */
-async function tryModel(
-  apiKey: string,
-  model: string,
-  base64Image: string,
-  timeoutMs: number,
-): Promise<FoodAnalysis> {
-  const url = `${BASE_URL}/${model}:generateContent`;
-
-  const response = await fetchGemini(
-    url,
-    {
-      method: 'POST',
-      headers: geminiHeaders(apiKey),
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
-              { text: IMAGE_PROMPT },
-            ],
-          },
-        ],
-      }),
-    },
-    timeoutMs,
-  );
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw parseGeminiError(response.status, errText, model);
-  }
-
-  const result = await response.json();
-  const text = extractResponseText(result, model);
-
-  // Strip accidental markdown fences that some model versions include.
-  const cleanJson = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(cleanJson) as FoodAnalysis;
-}
-
 /*
   HTTP status codes from Gemini that mean this specific model is unavailable
   but a different model in the chain might succeed.
@@ -316,18 +268,6 @@ async function withModelFallback<T>(
   throw lastError ?? new GeminiError('All AI models are currently unavailable.', 429, 'GEMINI_QUOTA');
 }
 
-/*
-  Send a base64-encoded JPEG to Gemini and parse the macro response.
-  Tries each model in MODELS order; skips to the next on model-specific failures.
-  Account-level errors (NOT_CONFIGURED, 401, 403) are thrown immediately.
-*/
-export async function analyzeFood(base64Image: string): Promise<FoodAnalysis> {
-  return withModelFallback('analyzeFood', (model, timeoutMs) => {
-    const apiKey = process.env.GEMINI_API_KEY!;
-    return tryModel(apiKey, model, base64Image, timeoutMs);
-  });
-}
-
 /* Send a text description to a specific model and parse the macro response. */
 async function tryModelText(
   apiKey: string,
@@ -382,7 +322,7 @@ async function tryModelText(
 
 /*
   Send a natural-language food description to Gemini and parse the macro response.
-  Uses the same model fallback chain as analyzeFood.
+  Uses the shared model fallback chain.
 */
 export async function analyzeFoodText(userText: string): Promise<VoiceFoodAnalysis> {
   return withModelFallback('analyzeFoodText', (model, timeoutMs) => {

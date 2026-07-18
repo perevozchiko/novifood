@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzeFood, analyzeFoodText, GeminiError } from '@/lib/gemini';
+import { analyzeFoodText } from '@/lib/gemini';
 
 const API_KEY = 'AIzaSyTestKeyForUnitTests1234567890';
 
@@ -187,49 +187,5 @@ describe('analyzeFoodText', () => {
       status: 502,
       code: 'EMPTY_RESPONSE',
     });
-  });
-});
-
-describe('analyzeFood', () => {
-  beforeEach(() => {
-    vi.stubEnv('GEMINI_API_KEY', API_KEY);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.unstubAllEnvs();
-  });
-
-  it('analyzeFood_ShouldSendImageAndPrompt_WhenBase64Provided', async () => {
-    const fetchMock = mockFetchSequence({
-      status: 200,
-      body: geminiJsonResponse(
-        '{"name":"Салат","calories":250,"protein":8,"fat":18,"carbs":12}',
-      ),
-    });
-
-    const result = await analyzeFood('dGVzdGltYWdl');
-
-    expect(result.name).toBe('Салат');
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    const payload = JSON.parse(init.body as string) as {
-      contents: Array<{ parts: Array<{ inline_data?: { mime_type: string; data: string }; text?: string }> }>;
-    };
-    const parts = payload.contents[0].parts;
-    expect(parts[0].inline_data).toEqual({ mime_type: 'image/jpeg', data: 'dGVzdGltYWdl' });
-    expect(parts[1].text).toContain('Analyse the food in this photo');
-  });
-
-  it('analyzeFood_ShouldThrowGeminiError_WhenApiReturns401', async () => {
-    mockFetchSequence({
-      status: 401,
-      body: { error: { message: 'API key not valid' } },
-    });
-
-    const err = await analyzeFood('dGVzdA==').catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(GeminiError);
-    expect((err as GeminiError).status).toBe(401);
   });
 });

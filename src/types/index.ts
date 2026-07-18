@@ -36,14 +36,6 @@ export interface WaterIntake {
   amount_ml: number;
 }
 
-export interface FoodAnalysis {
-  name: string;
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-}
-
 export interface ProductNutrition {
   calories: number;
   protein: number;
