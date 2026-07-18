@@ -10,6 +10,7 @@ export interface Meal {
   protein: number;
   fat: number;
   carbs: number;
+  weight_grams?: number | null;
   notes: string | null;
 }
 

@@ -15,6 +15,7 @@ const meal: Meal = {
   protein: 10,
   fat: 5,
   carbs: 50,
+  weight_grams: 150,
   notes: null,
 };
 
@@ -27,6 +28,11 @@ describe('MealCard', () => {
   it('render_ShouldDisplayCalories', () => {
     renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
     expect(screen.getByText(/300 ккал/)).toBeDefined();
+  });
+
+  it('render_ShouldDisplayEatenWeight_WhenAvailable', () => {
+    renderWithProviders(<MealCard meal={meal} onDelete={vi.fn()} onUpdate={vi.fn()} />, { lang: 'ru' });
+    expect(screen.getByText('Вес: 150г')).toBeDefined();
   });
 
   it('render_ShouldDisplayMealTypeLabel', () => {

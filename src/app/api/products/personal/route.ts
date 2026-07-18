@@ -29,6 +29,10 @@ function mapRow(row: ProductRow): Product {
   };
 }
 
+function productNameKey(name: string): string {
+  return name.replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
 async function currentUser() {
   const supabase = await getServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
     user_id: user.id,
     base_product_id: typeof body?.baseProductId === 'string' ? body.baseProductId : null,
     name,
+    name_key: productNameKey(name),
     energy_100g: asNonNegativeNumber(body?.calories),
     proteins_100g: asNonNegativeNumber(body?.protein),
     fat_100g: asNonNegativeNumber(body?.fat),
@@ -68,7 +73,7 @@ export async function POST(request: NextRequest) {
   const id = typeof body?.id === 'string' ? body.id : null;
   const query = id
     ? supabase.from('user_products').update(payload).eq('id', id)
-    : supabase.from('user_products').insert(payload);
+    : supabase.from('user_products').upsert(payload, { onConflict: 'user_id,name_key' });
   const { data, error } = await query
     .select('id,name,energy_100g,proteins_100g,fat_100g,carbs_100g,source,base_product_id')
     .single();

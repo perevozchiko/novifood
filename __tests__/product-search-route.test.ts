@@ -1,27 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-const { mockGetUser, mockFrom, productsIlike, personalIlike, mockUpsert } = vi.hoisted(() => {
+const { mockGetUser, mockFrom, productsIlike, personalIlike, productsPattern, personalPattern, mockUpsert } = vi.hoisted(() => {
   const productsIlike = vi.fn();
   const personalIlike = vi.fn();
+  const productsPattern = vi.fn();
+  const personalPattern = vi.fn();
   const mockUpsert = vi.fn().mockResolvedValue({ error: null });
   const mockGetUser = vi.fn();
   const mockFrom = vi.fn((table: string) => ({
     select: vi.fn(() => ({
-      ilike: vi.fn(() => ({
+      ilike: vi.fn((column: string, pattern: string) => {
+        (table === 'products' ? productsPattern : personalPattern)(column, pattern);
+        return ({
         limit: vi.fn(() => table === 'products' ? productsIlike() : personalIlike()),
-      })),
+        });
+      }),
     })),
     upsert: mockUpsert,
   }));
-  return { mockGetUser, mockFrom, productsIlike, personalIlike, mockUpsert };
+  return { mockGetUser, mockFrom, productsIlike, personalIlike, productsPattern, personalPattern, mockUpsert };
 });
 
 vi.mock('@/lib/supabase-server', () => ({
   getServerClient: vi.fn(async () => ({ auth: { getUser: mockGetUser }, from: mockFrom })),
 }));
 
-import { GET } from '@/app/api/products/search/route';
+import { GET, productSearchQuery } from '@/app/api/products/search/route';
 
 function request(query: string) {
   return new NextRequest(`http://localhost/api/products/search?q=${encodeURIComponent(query)}`);
@@ -30,7 +35,7 @@ function request(query: string) {
 describe('GET /api/products/search', () => {
   beforeEach(() => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
-    mockFrom.mockClear(); mockUpsert.mockClear();
+    mockFrom.mockClear(); mockUpsert.mockClear(); productsPattern.mockClear(); personalPattern.mockClear();
     productsIlike.mockReset(); personalIlike.mockReset();
     vi.unstubAllGlobals();
   });
@@ -47,6 +52,18 @@ describe('GET /api/products/search', () => {
     expect(body.source).toBe('local');
     expect(body.products[0]).toMatchObject({ name: 'Milk', calories: 60 });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('removes a spoken serving amount before querying the catalogue', async () => {
+    productsIlike.mockResolvedValue({ data: [], error: null });
+    personalIlike.mockResolvedValue({ data: [], error: null });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ products: [] }) }));
+
+    await GET(request('гречка 100 грамм'));
+
+    expect(productSearchQuery('гречка 100 грамм')).toBe('гречка');
+    expect(productsPattern).toHaveBeenCalledWith('name', '%гречка%');
+    expect(personalPattern).toHaveBeenCalledWith('name', '%гречка%');
   });
 
   it('caches an Open Food Facts result when the local catalogue misses', async () => {

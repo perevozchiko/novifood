@@ -159,6 +159,31 @@ describe('VoiceInput', () => {
     });
   });
 
+  it('analyze_ShouldShowWaitingState_UntilAiResponds', async () => {
+    let resolveAnalysis: ((value: typeof mockAnalysis) => void) | undefined;
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/analyze-voice') {
+        return new Promise((resolve) => {
+          resolveAnalysis = (value) => resolve({ ok: true, json: () => Promise.resolve(value) });
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }));
+    const user = userEvent.setup();
+    renderWithProviders(<VoiceInput onConfirm={vi.fn()} />, { lang: 'ru' });
+
+    await user.click(screen.getByText('Голосовой ввод'));
+    await user.click(screen.getByText('Стоп'));
+    await screen.findByDisplayValue('стакан молока 330 грамм');
+    await submitTranscriptForAnalysis(user);
+
+    expect(screen.getByText('Ждём ответ от ИИ…')).toBeDefined();
+    expect(screen.getByRole('progressbar', { name: 'Ждём ответ от ИИ…' })).toBeDefined();
+
+    await act(async () => { resolveAnalysis?.(mockAnalysis); });
+    expect(await screen.findByText('Молоко')).toBeDefined();
+  });
+
   it('error_ShouldShowContinuityHint_WhenOnlyIphoneMicAvailable', async () => {
     mockAcquire.mockRejectedValue(new MicrophoneError('CONTINUITY_ONLY'));
     const user = userEvent.setup();
@@ -210,6 +235,7 @@ describe('VoiceInput', () => {
           protein: 14,
           fat: 10,
           carbs: 20,
+          weight_grams: 200,
         }),
       );
     });

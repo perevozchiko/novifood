@@ -26,6 +26,18 @@ function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, '\\$&');
 }
 
+/**
+ * Speech input often includes a serving amount (for example, "гречка 100 г").
+ * A catalogue stores product names rather than full spoken phrases, so remove
+ * a trailing measurement before querying it.
+ */
+export function productSearchQuery(query: string): string {
+  const withoutServing = query
+    .replace(/\s+\d+(?:[.,]\d+)?\s*(?:г(?:р(?:ам(?:м(?:а|ов)?)?)?)?|кг|мг|g|kg|mg|мл|л|ml|l)\.?\s*$/iu, '')
+    .trim();
+  return withoutServing.length >= 2 ? withoutServing : query;
+}
+
 function fromCacheRow(row: ProductRow, personal = false, baseProductId: string | null = null): Product {
   return {
     id: row.id,
@@ -127,12 +139,13 @@ async function cacheOffProducts(products: Product[]) {
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get('q')?.trim() ?? '';
   if (query.length < 2) return NextResponse.json({ products: [], source: 'local' });
+  const searchQuery = productSearchQuery(query);
 
   const supabase = await getServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const pattern = `%${escapeLike(query)}%`;
+  const pattern = `%${escapeLike(searchQuery)}%`;
   const [cached, personal] = await Promise.all([
     supabase.from('products').select('id,name,energy_100g,proteins_100g,fat_100g,carbs_100g,source').ilike('name', pattern).limit(12),
     supabase.from('user_products').select('id,name,energy_100g,proteins_100g,fat_100g,carbs_100g,source,base_product_id').ilike('name', pattern).limit(12),
@@ -153,7 +166,7 @@ export async function GET(request: NextRequest) {
   const clientKey = user.id;
   if (!canCallOff(clientKey)) return NextResponse.json({ products: [], source: 'none', limited: true });
   try {
-    const offProducts = await searchOpenFoodFacts(query);
+    const offProducts = await searchOpenFoodFacts(searchQuery);
     await cacheOffProducts(offProducts);
     return NextResponse.json({ products: offProducts, source: offProducts.length ? 'off' : 'none' });
   } catch (error) {
