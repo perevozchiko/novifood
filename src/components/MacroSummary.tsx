@@ -1,6 +1,6 @@
 'use client';
 
-import type { Meal, Settings } from '@/types';
+import type { Meal, MealType, Settings } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 
 /*
@@ -21,6 +21,21 @@ interface MacroBarProps {
   goal: number;
   unit: string;
   color: string;
+}
+
+const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+type MacroTotals = Pick<Meal, 'calories' | 'protein' | 'fat' | 'carbs'>;
+
+const emptyTotals: MacroTotals = { calories: 0, protein: 0, fat: 0, carbs: 0 };
+
+function addMealTotals(totals: MacroTotals, meal: Meal): MacroTotals {
+  return {
+    calories: totals.calories + (meal.calories || 0),
+    protein: totals.protein + (meal.protein || 0),
+    fat: totals.fat + (meal.fat || 0),
+    carbs: totals.carbs + (meal.carbs || 0),
+  };
 }
 
 function MacroBar({ label, value, goal, unit, color }: MacroBarProps) {
@@ -46,15 +61,17 @@ function MacroBar({ label, value, goal, unit, color }: MacroBarProps) {
 export default function MacroSummary({ meals, settings }: Props) {
   const { t } = useT();
 
-  const totals = meals.reduce(
-    (acc, m) => ({
-      calories: acc.calories + (m.calories || 0),
-      protein: acc.protein + (m.protein || 0),
-      fat: acc.fat + (m.fat || 0),
-      carbs: acc.carbs + (m.carbs || 0),
-    }),
-    { calories: 0, protein: 0, fat: 0, carbs: 0 },
+  const totals = meals.reduce(addMealTotals, emptyTotals);
+  const totalsByMealType = MEAL_TYPES.reduce(
+    (acc, mealType) => ({ ...acc, [mealType]: emptyTotals }),
+    {} as Record<MealType, MacroTotals>,
   );
+
+  meals.forEach((meal) => {
+    if (meal.meal_type) {
+      totalsByMealType[meal.meal_type] = addMealTotals(totalsByMealType[meal.meal_type], meal);
+    }
+  });
 
   const calPct =
     settings.calorie_goal > 0
@@ -120,6 +137,34 @@ export default function MacroSummary({ meals, settings }: Props) {
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-right">
         {t('macro.goal', settings.calorie_goal)} {t('macro.calories')} · {calPct}%
       </p>
+
+      <div className="border-t border-gray-100 dark:border-gray-700 mt-4 pt-3">
+        <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
+          {t('macro.byMealType')}
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {MEAL_TYPES.map((mealType) => {
+            const mealTotals = totalsByMealType[mealType];
+            return (
+              <div
+                key={mealType}
+                className="rounded-xl bg-gray-50 dark:bg-gray-700/50 px-3 py-2"
+              >
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-200">
+                  {t(`meal.type.${mealType}` as Parameters<typeof t>[0])}
+                </p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                  {mealTotals.calories} {t('macro.calories')}
+                </p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  {t('macro.pAbbr')} {mealTotals.protein}{t('macro.g')} · {t('macro.fAbbr')}{' '}
+                  {mealTotals.fat}{t('macro.g')} · {t('macro.cAbbr')} {mealTotals.carbs}{t('macro.g')}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

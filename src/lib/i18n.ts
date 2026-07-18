@@ -33,6 +33,7 @@ const dictionaries = {
     'macro.fAbbr': 'F',
     'macro.cAbbr': 'C',
     'macro.g': 'g',
+    'macro.byMealType': 'By meal',
 
     // MealCard
     'meal.edit': 'Edit',
@@ -305,6 +306,7 @@ const dictionaries = {
     'macro.fAbbr': 'Ж',
     'macro.cAbbr': 'У',
     'macro.g': 'г',
+    'macro.byMealType': 'По приёмам пищи',
 
     // MealCard
     'meal.edit': 'Редактировать',

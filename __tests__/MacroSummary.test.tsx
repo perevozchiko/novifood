@@ -10,6 +10,7 @@ const settings: Settings = {
   protein_goal: 150,
   fat_goal: 80,
   carbs_goal: 250,
+  water_goal_ml: 2000,
 };
 
 const meals: Meal[] = [
@@ -60,6 +61,18 @@ describe('MacroSummary', () => {
     expect(screen.getByText('Белки')).toBeDefined();
     expect(screen.getByText('Жиры')).toBeDefined();
     expect(screen.getByText('Углеводы')).toBeDefined();
+  });
+
+  it('render_ShouldDisplayTotalsByMealType', () => {
+    renderWithProviders(<MacroSummary meals={meals} settings={settings} />, { lang: 'ru' });
+
+    expect(screen.getByText('По приёмам пищи')).toBeDefined();
+    expect(screen.getByText('Завтрак')).toBeDefined();
+    expect(screen.getByText('Обед')).toBeDefined();
+    expect(screen.getByText('300 ккал')).toBeDefined();
+    expect(screen.getByText('400 ккал')).toBeDefined();
+    expect(screen.getByText('Б 10г · Ж 5г · У 50г')).toBeDefined();
+    expect(screen.getByText('Б 50г · Ж 8г · У 0г')).toBeDefined();
   });
 
   it('render_ShouldDisplayEnglishLabels_WhenLangIsEn', () => {
