@@ -240,4 +240,42 @@ describe('VoiceInput', () => {
       );
     });
   });
+
+  it('confirm_ShouldPreserveDecimalMacros_WhenAddingToDiary', async () => {
+    const onConfirm = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/analyze-voice') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            name: 'Рис',
+            calories: 130,
+            protein: 2.7,
+            fat: 0.3,
+            carbs: 28.2,
+          }),
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }));
+    const user = userEvent.setup();
+    renderWithProviders(<VoiceInput onConfirm={onConfirm} />, { lang: 'ru' });
+
+    await user.click(screen.getByText('Голосовой ввод'));
+    await user.click(screen.getByText('Стоп'));
+    await screen.findByDisplayValue('стакан молока 330 грамм');
+    await submitTranscriptForAnalysis(user);
+    await screen.findByText('Рис');
+    await user.click(screen.getByText('Добавить в дневник'));
+
+    await waitFor(() => {
+      expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({
+        name: 'Рис',
+        protein: 2.7,
+        fat: 0.3,
+        carbs: 28.2,
+        weight_grams: 100,
+      }));
+    });
+  });
 });

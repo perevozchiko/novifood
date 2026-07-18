@@ -9,9 +9,9 @@ create table meals (
   name        text        not null,
   meal_type   text,                    -- breakfast | lunch | dinner | snack
   calories    integer     not null    default 0,
-  protein     integer     not null    default 0,
-  fat         integer     not null    default 0,
-  carbs       integer     not null    default 0,
+  protein     real        not null    default 0,
+  fat         real        not null    default 0,
+  carbs       real        not null    default 0,
   notes       text
 );
 
