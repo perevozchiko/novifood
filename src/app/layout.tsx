@@ -48,8 +48,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             {/* Desktop layout: sidebar + content; Mobile: content + bottom nav */}
             <div className="flex min-h-screen">
 
-              {/* Desktop sidebar (md+) — in flex flow so main content centers in the remaining width */}
-              <aside className="hidden md:flex md:flex-col md:w-56 md:flex-none md:shrink-0 md:bg-white md:dark:bg-gray-800 md:border-r md:border-gray-200 md:dark:border-gray-700">
+              {/*
+                Keep the desktop navigation pinned to the viewport.  It must not
+                inherit the document height: otherwise the controls with mt-auto
+                are pushed below long page content.
+              */}
+              <aside className="hidden md:flex md:flex-col md:sticky md:top-0 md:h-dvh md:w-64 md:flex-none md:shrink-0 md:self-start md:bg-white md:dark:bg-gray-800 md:border-r md:border-gray-200 md:dark:border-gray-700">
                 <div className="flex flex-col flex-1 px-4 py-6">
                   <div className="mb-8">
                     <h1 className="text-xl font-bold text-green-700 dark:text-green-400">NoviFood</h1>

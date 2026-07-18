@@ -7,19 +7,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  BarChart3,
+  CalendarDays,
+  Package,
+  Scale,
+  Settings,
+  Utensils,
+  type LucideIcon,
+} from 'lucide-react';
+import type { TranslationKey } from '@/lib/i18n';
 import { useT } from '@/providers/LanguageProvider';
 
 interface Props {
   variant: 'bottom' | 'sidebar';
 }
 
-const NAV_ITEMS = [
-  { href: '/', labelKey: 'nav.diary' as const, icon: '🥗' },
-  { href: '/history', labelKey: 'nav.history' as const, icon: '📅' },
-  { href: '/weight', labelKey: 'nav.weight' as const, icon: '⚖️' },
-  { href: '/products', labelKey: 'nav.products' as const, icon: '🥫' },
-  { href: '/stats', labelKey: 'nav.stats' as const, icon: '📊' },
-  { href: '/settings', labelKey: 'nav.settings' as const, icon: '⚙️' },
+const NAV_ITEMS: { href: string; labelKey: TranslationKey; icon: LucideIcon }[] = [
+  { href: '/', labelKey: 'nav.diary', icon: Utensils },
+  { href: '/history', labelKey: 'nav.history', icon: CalendarDays },
+  { href: '/weight', labelKey: 'nav.weight', icon: Scale },
+  { href: '/products', labelKey: 'nav.products', icon: Package },
+  { href: '/stats', labelKey: 'nav.stats', icon: BarChart3 },
+  { href: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 
 export default function NavLinks({ variant }: Props) {
@@ -29,7 +39,7 @@ export default function NavLinks({ variant }: Props) {
   if (variant === 'bottom') {
     return (
       <>
-        {NAV_ITEMS.map(({ href, labelKey, icon }) => {
+        {NAV_ITEMS.map(({ href, labelKey, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
@@ -41,7 +51,7 @@ export default function NavLinks({ variant }: Props) {
                   : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'
               }`}
             >
-              <span className="text-xl">{icon}</span>
+              <Icon size={20} strokeWidth={2} aria-hidden="true" />
               {t(labelKey)}
             </Link>
           );
@@ -52,7 +62,7 @@ export default function NavLinks({ variant }: Props) {
 
   return (
     <nav className="flex flex-col gap-1">
-      {NAV_ITEMS.map(({ href, labelKey, icon }) => {
+      {NAV_ITEMS.map(({ href, labelKey, icon: Icon }) => {
         const active = pathname === href;
         return (
           <Link
@@ -64,7 +74,7 @@ export default function NavLinks({ variant }: Props) {
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <span className="text-lg">{icon}</span>
+            <Icon className="shrink-0" size={20} strokeWidth={2} aria-hidden="true" />
             {t(labelKey)}
           </Link>
         );
