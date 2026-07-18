@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/', labelKey: 'nav.diary' as const, icon: '🥗' },
   { href: '/history', labelKey: 'nav.history' as const, icon: '📅' },
   { href: '/weight', labelKey: 'nav.weight' as const, icon: '⚖️' },
+  { href: '/products', labelKey: 'nav.products' as const, icon: '🥫' },
   { href: '/stats', labelKey: 'nav.stats' as const, icon: '📊' },
   { href: '/settings', labelKey: 'nav.settings' as const, icon: '⚙️' },
 ];

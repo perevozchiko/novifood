@@ -1,5 +1,12 @@
 # NoviFood
 
+## Product data
+
+NoviFood keeps a small local cache of products requested by users instead of
+importing the full Open Food Facts catalogue. Product data is provided by
+[Open Food Facts](https://world.openfoodfacts.org/) and is available under the
+[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
+
 NoviFood — a simple and smart nutrition tracker for calories, meals, and healthy habits.
 
 ---

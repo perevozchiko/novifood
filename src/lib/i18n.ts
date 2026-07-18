@@ -17,7 +17,7 @@ const dictionaries = {
     'nav.history': 'History',
     'nav.weight': 'Weight',
     'nav.products': 'Products',
-  'nav.settings': 'Settings',
+    'nav.settings': 'Settings',
 
     // Home / Diary
     'diary.empty': 'No entries today',
@@ -106,11 +106,30 @@ const dictionaries = {
     'voice.errorSave': 'Failed to save.',
     'voice.stop': 'Stop',
     'voice.previewLabel': 'Recognized text',
-    'voice.analyze': 'Analyze',
+    'voice.analyze': 'Calculate with AI',
     'voice.rerecord': 'Record again',
     'voice.errorRecognition': 'Speech recognition failed. Try again.',
     'voice.transcribing': 'Transcribing…',
     'voice.errorContinuityMic': 'Only iPhone microphones are available. Disable Continuity Camera on your iPhone (Settings → General → AirPlay & Handoff) or use the Mac built-in mic.',
+    'voice.searching': 'Searching products…',
+    'voice.matches': 'Choose a product',
+    'voice.noMatches': 'No matching product found.',
+    'voice.productName': 'Name',
+    'voice.per100g': 'Nutrition per 100 g',
+    'voice.weight': 'Weight, g',
+
+    // Products
+    'products.title': 'Products',
+    'products.search': 'Search local catalogue',
+    'products.empty': 'Start typing to search products',
+    'products.none': 'No products found',
+    'products.personal': 'My products',
+    'products.edit': 'Edit',
+    'products.new': 'New product',
+    'products.save': 'Save copy',
+    'products.delete': 'Delete',
+    'products.cancel': 'Cancel',
+    'products.attribution': 'Product data from Open Food Facts, available under the Open Database License (ODbL).',
 
     // PortionSelector
     'portion.label': 'Portion',
@@ -137,8 +156,7 @@ const dictionaries = {
     'weight.deleteError': 'Failed to delete. Try again.',
 
     // Settings
-    'nav.products': 'Продукты',
-  'settings.title': 'Цели КБЖУ',
+    'settings.title': 'Цели КБЖУ',
     'settings.subtitle': 'Your daily targets',
     'settings.calories': 'Calories',
     'settings.protein': 'Protein',
@@ -267,6 +285,7 @@ const dictionaries = {
     'nav.diary': 'Дневник',
     'nav.history': 'История',
     'nav.weight': 'Вес',
+    'nav.products': 'Продукты',
     'nav.settings': 'Настройки',
 
     // Home / Diary
@@ -356,11 +375,30 @@ const dictionaries = {
     'voice.errorSave': 'Не удалось сохранить.',
     'voice.stop': 'Стоп',
     'voice.previewLabel': 'Распознанный текст',
-    'voice.analyze': 'Отправить на анализ',
+    'voice.analyze': 'Рассчитать с ИИ',
     'voice.rerecord': 'Записать заново',
     'voice.errorRecognition': 'Не удалось распознать речь. Попробуйте снова.',
     'voice.transcribing': 'Распознаю речь…',
     'voice.errorContinuityMic': 'Доступен только микрофон iPhone. Отключите «Камеру непрерывности» на iPhone (Настройки → Основные → AirPlay и Handoff) или используйте встроенный микрофон Mac.',
+    'voice.searching': 'Ищу продукты…',
+    'voice.matches': 'Выберите продукт',
+    'voice.noMatches': 'Подходящий продукт не найден.',
+    'voice.productName': 'Название',
+    'voice.per100g': 'КБЖУ на 100 г',
+    'voice.weight': 'Вес, г',
+
+    // Products
+    'products.title': 'Продукты',
+    'products.search': 'Поиск в локальном каталоге',
+    'products.empty': 'Начните вводить название продукта',
+    'products.none': 'Продукты не найдены',
+    'products.personal': 'Мои продукты',
+    'products.edit': 'Редактировать',
+    'products.new': 'Новый продукт',
+    'products.save': 'Сохранить копию',
+    'products.delete': 'Удалить',
+    'products.cancel': 'Отмена',
+    'products.attribution': 'Данные о продуктах: Open Food Facts, лицензия Open Database License (ODbL).',
 
     // PortionSelector
     'portion.label': 'Порция',
