@@ -61,7 +61,8 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
         </div>
       )}
 
-      <div className="mb-6">
+      <div className="space-y-3 mb-6">
+        <AddMealForm onAdd={handleAdd} />
         <VoiceInput onConfirm={handleAdd} />
       </div>
 
@@ -83,9 +84,6 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
 
       <WaterTracker initialEntries={initialWater} goalMl={settings.water_goal_ml ?? 2000} />
 
-      <div className="mt-6">
-        <AddMealForm onAdd={handleAdd} />
-      </div>
     </>
   );
 }
