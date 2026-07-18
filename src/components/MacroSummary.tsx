@@ -75,12 +75,14 @@ export default function MacroSummary({ meals, settings }: Props) {
 
   const calPct =
     settings.calorie_goal > 0
-      ? Math.min(100, Math.round((totals.calories / settings.calorie_goal) * 100))
+      ? Math.round((totals.calories / settings.calorie_goal) * 100)
       : 0;
+  const ringPct = Math.min(100, calPct);
+  const isCalorieGoalExceeded = calPct > 100;
 
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (calPct / 100) * circumference;
+  const dashOffset = circumference - (ringPct / 100) * circumference;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm mb-6">
@@ -94,7 +96,7 @@ export default function MacroSummary({ meals, settings }: Props) {
               cy="50"
               r={radius}
               fill="none"
-              stroke="#16a34a"
+              stroke={isCalorieGoalExceeded ? '#dc2626' : '#16a34a'}
               strokeWidth="10"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -134,7 +136,13 @@ export default function MacroSummary({ meals, settings }: Props) {
           />
         </div>
       </div>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-right">
+      <p
+        className={`text-xs mt-3 text-right ${
+          isCalorieGoalExceeded
+            ? 'text-red-600 dark:text-red-400'
+            : 'text-gray-400 dark:text-gray-500'
+        }`}
+      >
         {t('macro.goal', settings.calorie_goal)} {t('macro.calories')} · {calPct}%
       </p>
 

@@ -56,6 +56,18 @@ describe('MacroSummary', () => {
     expect(screen.getByText('0')).toBeDefined();
   });
 
+  it('render_ShouldShowOverageInRed_AndKeepActualPercentage', () => {
+    const mealsOverGoal: Meal[] = [{ ...meals[0], calories: 2640 }];
+
+    const { container } = renderWithProviders(
+      <MacroSummary meals={mealsOverGoal} settings={settings} />,
+      { lang: 'ru' },
+    );
+
+    expect(screen.getByText(/120%/).classList.contains('text-red-600')).toBe(true);
+    expect(container.querySelector('svg circle:nth-of-type(2)')?.getAttribute('stroke')).toBe('#dc2626');
+  });
+
   it('render_ShouldDisplayMacroLabels', () => {
     renderWithProviders(<MacroSummary meals={meals} settings={settings} />, { lang: 'ru' });
     expect(screen.getByText('Белки')).toBeDefined();
