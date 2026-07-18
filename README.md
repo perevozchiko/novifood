@@ -9,6 +9,8 @@ importing the full Open Food Facts catalogue. Product data is provided by
 
 NoviFood — a simple and smart nutrition tracker for calories, meals, and healthy habits.
 
+Подробное описание возможностей, архитектуры, данных и API: [docs/plan.md](docs/plan.md).
+
 ---
 
 ## Setup
@@ -30,7 +32,7 @@ GEMINI_API_KEY=AIzaSy...
 
 ### 2. Database migrations
 
-All four migrations must be applied to the Supabase database. Run:
+All eight migrations must be applied to the Supabase database. Run:
 
 ```bash
 npx supabase db push
@@ -44,6 +46,10 @@ Or apply each file manually in the Supabase SQL editor:
 | `supabase/migrations/0002_water_intake.sql` | Table `water_intake` + column `settings.water_goal_ml` |
 | `supabase/migrations/0003_ai_rate_limit.sql` | Table `ai_usage` (daily AI quota counter) |
 | `supabase/migrations/0004_auth.sql` | Per-user auth: `user_id` columns, RLS, sign-up trigger |
+| `supabase/migrations/0005_products.sql` | Shared Open Food Facts product cache |
+| `supabase/migrations/0006_product_cache_and_personal_products.sql` | Product cache search and per-user products |
+| `supabase/migrations/0007_dedupe_personal_products.sql` | Deduplication and normalized personal product names |
+| `supabase/migrations/0008_add_meal_weight.sql` | Optional actual serving weight for diary meals |
 
 > **If migration 0002 is not applied:** the Water tracker shows `0 / undefined мл` and saving water entries fails with "Не удалось сохранить".
 >
