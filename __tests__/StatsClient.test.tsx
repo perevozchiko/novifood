@@ -10,7 +10,6 @@ const settings: Settings = {
   protein_goal: 150,
   fat_goal: 70,
   carbs_goal: 200,
-  water_goal_ml: 2000,
 };
 
 function makeDays(overrides: Partial<DayStat>[] = []): DayStat[] {

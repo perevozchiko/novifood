@@ -13,25 +13,23 @@ import MacroSummary from '@/components/MacroSummary';
 import MealCard from '@/components/MealCard';
 import AddMealForm from '@/components/AddMealForm';
 import VoiceInput from '@/components/VoiceInput';
-import WaterTracker from '@/components/WaterTracker';
 import { addMeal, deleteMeal, updateMeal } from '@/lib/meals';
-import type { Meal, Settings, WaterIntake } from '@/types';
+import type { Meal, Settings } from '@/types';
 import { useT } from '@/providers/LanguageProvider';
 
 interface Props {
   initialMeals: Meal[];
   settings: Settings;
   streak: number;
-  initialWater: WaterIntake[];
 }
 
-export default function DiaryClient({ initialMeals, settings, streak, initialWater }: Props) {
+export default function DiaryClient({ initialMeals, settings, streak }: Props) {
   const { t } = useT();
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
 
   async function handleAdd(mealData: Omit<Meal, 'id' | 'created_at'>) {
     const created = await addMeal(mealData);
-    setMeals((prev) => [...prev, created]);
+    setMeals((prev) => [created, ...prev]);
   }
 
   async function handleDelete(id: string) {
@@ -81,9 +79,6 @@ export default function DiaryClient({ initialMeals, settings, streak, initialWat
           ))
         )}
       </div>
-
-      <WaterTracker initialEntries={initialWater} goalMl={settings.water_goal_ml ?? 2000} />
-
     </>
   );
 }

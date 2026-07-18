@@ -51,7 +51,6 @@ export default function HomeClient() {
           initialMeals={data.meals}
           settings={data.settings}
           streak={data.streak}
-          initialWater={data.waterEntries}
         />
       )}
     </div>

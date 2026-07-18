@@ -23,7 +23,7 @@ async function getMealsByDateFrom(
     .select('*')
     .gte('eaten_at', from)
     .lte('eaten_at', to)
-    .order('eaten_at', { ascending: true });
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
   return data || [];

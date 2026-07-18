@@ -10,7 +10,6 @@ const settings: Settings = {
   protein_goal: 150,
   fat_goal: 80,
   carbs_goal: 250,
-  water_goal_ml: 2000,
 };
 
 const meals: Meal[] = [

@@ -10,7 +10,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sun, Moon, Download, Upload, Trash2, AlertTriangle, LogOut } from 'lucide-react';
+import { Sun, Moon, Download, Upload, Trash2, AlertTriangle, LogOut, UserRound } from 'lucide-react';
 import { updateSettings } from '@/lib/settings';
 import { setCached } from '@/lib/client-cache';
 import { supabaseBrowser } from '@/lib/supabase-browser';
@@ -28,9 +28,10 @@ import { useTheme } from '@/providers/ThemeProvider';
 
 interface Props {
   settings: Settings;
+  account?: string;
 }
 
-export default function SettingsClient({ settings }: Props) {
+export default function SettingsClient({ settings, account }: Props) {
   const { t, locale, setLocale, speechLocale, setSpeechLocale } = useT();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -41,7 +42,6 @@ export default function SettingsClient({ settings }: Props) {
     protein_goal: settings.protein_goal,
     fat_goal: settings.fat_goal,
     carbs_goal: settings.carbs_goal,
-    water_goal_ml: settings.water_goal_ml,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -61,13 +61,18 @@ export default function SettingsClient({ settings }: Props) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   async function handleLogout() {
     setLoggingOut(true);
+    setLogoutError(null);
     try {
-      await supabaseBrowser.auth.signOut();
-      router.push('/login');
+      const { error: signOutError } = await supabaseBrowser.auth.signOut();
+      if (signOutError) throw signOutError;
+      router.replace('/login');
       router.refresh();
+    } catch {
+      setLogoutError(t('settings.logout.error'));
     } finally {
       setLoggingOut(false);
     }
@@ -162,9 +167,6 @@ export default function SettingsClient({ settings }: Props) {
       const [mealsResult, weightResult] = await Promise.all([
         supabaseBrowser.from('meals').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabaseBrowser.from('weight').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        // water_intake may not exist if migration 0002 has not been applied yet —
-        // ignore its error so the rest of the delete still succeeds.
-        supabaseBrowser.from('water_intake').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
       ]);
       if (mealsResult.error || weightResult.error) throw new Error('delete failed');
       setDeleteSuccess(true);
@@ -203,7 +205,6 @@ export default function SettingsClient({ settings }: Props) {
     { key: 'protein_goal', labelKey: 'settings.protein', unitKey: 'settings.g' },
     { key: 'fat_goal', labelKey: 'settings.fat', unitKey: 'settings.g' },
     { key: 'carbs_goal', labelKey: 'settings.carbs', unitKey: 'settings.g' },
-    { key: 'water_goal_ml', labelKey: 'settings.waterGoal', unitKey: 'settings.waterMl' },
   ];
 
   return (
@@ -464,17 +465,31 @@ export default function SettingsClient({ settings }: Props) {
           {t('settings.account')}
         </h2>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          disabled={loggingOut}
-          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
-        >
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {loggingOut ? t('auth.loading') : t('settings.logout')}
-          </span>
-          <LogOut size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-        </button>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+          {account && (
+            <div className="flex items-center gap-3 p-4">
+              <UserRound size={18} className="text-gray-400 dark:text-gray-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('auth.email')}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={account}>
+                  {account}
+                </p>
+              </div>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+          >
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {loggingOut ? t('auth.loading') : t('settings.logout')}
+            </span>
+            <LogOut size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          </button>
+        </div>
+        {logoutError && <p className="text-sm text-red-500 px-1">{logoutError}</p>}
       </div>
 
       {/* ── Danger zone ── */}

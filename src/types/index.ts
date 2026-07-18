@@ -20,20 +20,12 @@ export interface Settings {
   protein_goal: number;
   fat_goal: number;
   carbs_goal: number;
-  water_goal_ml: number;
 }
 
 export interface Weight {
   id: string;
   created_at: string;
   value: number;
-}
-
-export interface WaterIntake {
-  id: string;
-  created_at: string;
-  logged_at: string;
-  amount_ml: number;
 }
 
 export interface ProductNutrition {

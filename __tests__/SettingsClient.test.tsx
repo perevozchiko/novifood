@@ -31,6 +31,11 @@ const { mockFrom, mockSignOut } = vi.hoisted(() => {
   return { mockFrom, mockSignOut };
 });
 
+const { mockReplace, mockRefresh } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+  mockRefresh: vi.fn(),
+}));
+
 vi.mock('@/lib/supabase-browser', () => ({
   supabaseBrowser: {
     from: (table: string) => mockFrom(table),
@@ -40,8 +45,8 @@ vi.mock('@/lib/supabase-browser', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    refresh: vi.fn(),
+    replace: mockReplace,
+    refresh: mockRefresh,
   }),
 }));
 
@@ -59,7 +64,6 @@ const settings: Settings = {
   protein_goal: 150,
   fat_goal: 80,
   carbs_goal: 250,
-  water_goal_ml: 2000,
 };
 
 describe('SettingsClient', () => {
@@ -88,6 +92,7 @@ describe('SettingsClient', () => {
     expect(inputs[1].value).toBe('150');
     expect(inputs[2].value).toBe('80');
     expect(inputs[3].value).toBe('250');
+    expect(inputs).toHaveLength(4);
   });
 
   it('render_ShouldShowFieldLabels_InRussian', () => {
@@ -104,6 +109,38 @@ describe('SettingsClient', () => {
     expect(screen.getByText('Protein')).toBeDefined();
     expect(screen.getByText('Fat')).toBeDefined();
     expect(screen.getByText('Carbs')).toBeDefined();
+  });
+
+  it('account_ShouldShowSignedInEmail', () => {
+    renderWithProviders(
+      <SettingsClient settings={settings} account="person@example.com" />,
+      { lang: 'en' },
+    );
+
+    expect(screen.getByText('person@example.com')).toBeDefined();
+  });
+
+  it('logout_ShouldEndSessionAndRedirectToLogin', async () => {
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    fireEvent.click(screen.getByText('Sign out'));
+
+    await waitFor(() => {
+      expect(mockSignOut).toHaveBeenCalledOnce();
+      expect(mockReplace).toHaveBeenCalledWith('/login');
+      expect(mockRefresh).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('logout_ShouldShowError_WhenSessionCannotBeEnded', async () => {
+    mockSignOut.mockResolvedValueOnce({ error: new Error('Network error') });
+
+    renderWithProviders(<SettingsClient settings={settings} />, { lang: 'en' });
+    fireEvent.click(screen.getByText('Sign out'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to sign out. Please try again.')).toBeDefined();
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
   });
 
   it('save_ShouldCallUpdateSettings_WhenFormSubmitted', async () => {
@@ -190,7 +227,7 @@ describe('SettingsClient', () => {
     await waitFor(() => {
       expect(mockFrom).toHaveBeenCalledWith('meals');
       expect(mockFrom).toHaveBeenCalledWith('weight');
-      expect(mockFrom).toHaveBeenCalledWith('water_intake');
+      expect(mockFrom).not.toHaveBeenCalledWith('water_intake');
     });
   });
 

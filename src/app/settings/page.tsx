@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import LoadError from '@/components/LoadError';
 import { useAuthenticatedQuery } from '@/hooks/useAuthenticatedQuery';
 import { getSettingsBrowser } from '@/lib/settings';
+import { useAuth } from '@/providers/AuthProvider';
 import SettingsClient from './SettingsClient';
 
 function SettingsSkeleton() {
@@ -23,9 +24,15 @@ function SettingsSkeleton() {
 }
 
 export default function SettingsPage() {
+  const { session } = useAuth();
   const fetcher = useCallback(() => getSettingsBrowser(), []);
   const { data, isLoading, error, refetch } = useAuthenticatedQuery('settings', fetcher);
 
   if (error) return <LoadError onRetry={refetch} />;
-  return isLoading || !data ? <SettingsSkeleton /> : <SettingsClient settings={data} />;
+  return isLoading || !data ? <SettingsSkeleton /> : (
+    <SettingsClient
+      settings={data}
+      account={session?.user.email ?? session?.user.phone ?? session?.user.id}
+    />
+  );
 }

@@ -212,7 +212,7 @@ const dictionaries = {
     'settings.deleteAll.loading': 'Deleting…',
     'settings.deleteAll.success': 'All data deleted',
     'settings.deleteAll.error': 'Failed to delete data. Try again.',
-    'settings.deleteAll.warning': 'This will permanently delete all your meals, weight entries, and water intake data. This action cannot be undone.',
+    'settings.deleteAll.warning': 'This will permanently delete all your meals and weight entries. This action cannot be undone.',
     'settings.deleteAll.confirm': 'Yes, delete everything',
     'settings.deleteAll.cancel': 'Cancel',
 
@@ -232,6 +232,7 @@ const dictionaries = {
     'auth.rememberMe': 'Remember me',
     'settings.account': 'Account',
     'settings.logout': 'Sign out',
+    'settings.logout.error': 'Failed to sign out. Please try again.',
 
     // History search
     'history.search': 'Search meals…',
@@ -246,23 +247,6 @@ const dictionaries = {
     'offline.hint': 'The app is in offline mode. Check your internet and reload the page.',
     'offline.refresh': 'Reload',
 
-    // Water intake
-    'water.title': 'Water',
-    'water.goal': 'Daily goal',
-    'water.ml': 'ml',
-    'water.progress': '{0} / {1} ml',
-    'water.add150': '+150 ml',
-    'water.add250': '+250 ml',
-    'water.add500': '+500 ml',
-    'water.empty': 'No entries yet',
-    'water.deleteAria': 'Delete entry',
-    'water.deleteError': 'Failed to delete. Try again.',
-    'water.saveError': 'Failed to save. Try again.',
-
-    // Settings — water goal
-    'settings.water': 'Water',
-    'settings.waterGoal': 'Daily water goal',
-    'settings.waterMl': 'ml',
 
     // Error boundary
     'error.title': 'Something went wrong',
@@ -470,7 +454,7 @@ const dictionaries = {
     'settings.deleteAll.loading': 'Удаление…',
     'settings.deleteAll.success': 'Все данные удалены',
     'settings.deleteAll.error': 'Не удалось удалить данные. Попробуйте снова.',
-    'settings.deleteAll.warning': 'Это действие навсегда удалит все записи о питании, весе и потреблении воды. Отменить это действие невозможно.',
+    'settings.deleteAll.warning': 'Это действие навсегда удалит все записи о питании и весе. Отменить это действие невозможно.',
     'settings.deleteAll.confirm': 'Да, удалить всё',
     'settings.deleteAll.cancel': 'Отмена',
 
@@ -490,6 +474,7 @@ const dictionaries = {
     'auth.rememberMe': 'Запомнить меня',
     'settings.account': 'Аккаунт',
     'settings.logout': 'Выйти',
+    'settings.logout.error': 'Не удалось выйти из аккаунта. Попробуйте снова.',
 
     // History search
     'history.search': 'Поиск по блюдам…',
@@ -504,23 +489,6 @@ const dictionaries = {
     'offline.hint': 'Приложение работает в офлайн-режиме. Проверьте интернет и обновите страницу.',
     'offline.refresh': 'Обновить',
 
-    // Water intake
-    'water.title': 'Вода',
-    'water.goal': 'Дневная норма',
-    'water.ml': 'мл',
-    'water.progress': '{0} / {1} мл',
-    'water.add150': '+150 мл',
-    'water.add250': '+250 мл',
-    'water.add500': '+500 мл',
-    'water.empty': 'Нет записей',
-    'water.deleteAria': 'Удалить запись',
-    'water.deleteError': 'Не удалось удалить. Попробуйте снова.',
-    'water.saveError': 'Не удалось сохранить. Попробуйте снова.',
-
-    // Settings — water goal
-    'settings.water': 'Вода',
-    'settings.waterGoal': 'Дневная норма воды',
-    'settings.waterMl': 'мл',
 
     // Error boundary
     'error.title': 'Что-то пошло не так',

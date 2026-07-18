@@ -7,13 +7,6 @@ import type { Settings } from '@/types';
   Each authenticated user has exactly one settings row keyed by user_id.
 */
 
-function normalizeSettings(data: Settings): Settings {
-  return {
-    ...data,
-    water_goal_ml: data.water_goal_ml ?? 2000,
-  };
-}
-
 export async function getSettingsBrowser(): Promise<Settings> {
   const { data: { session } } = await supabaseBrowser.auth.getSession();
   const user = session?.user;
@@ -26,7 +19,7 @@ export async function getSettingsBrowser(): Promise<Settings> {
     .maybeSingle();
 
   if (error) throw error;
-  if (data) return normalizeSettings(data);
+  if (data) return data;
 
   // Users created before the sign-up trigger may have no settings row yet.
   const { data: created, error: insertError } = await supabaseBrowser
@@ -35,7 +28,7 @@ export async function getSettingsBrowser(): Promise<Settings> {
     .select()
     .single();
 
-  if (!insertError && created) return normalizeSettings(created);
+  if (!insertError && created) return created;
 
   const { data: existing, error: selectError } = await supabaseBrowser
     .from('settings')
@@ -44,7 +37,7 @@ export async function getSettingsBrowser(): Promise<Settings> {
     .single();
 
   if (selectError) throw insertError ?? selectError;
-  return normalizeSettings(existing);
+  return existing;
 }
 
 export async function updateSettings(updates: Partial<Settings>): Promise<Settings> {
@@ -62,5 +55,5 @@ export async function updateSettings(updates: Partial<Settings>): Promise<Settin
     .single();
 
   if (error) throw error;
-  return normalizeSettings(data);
+  return data;
 }
