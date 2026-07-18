@@ -42,3 +42,24 @@ export interface FoodAnalysis {
   fat: number;
   carbs: number;
 }
+
+export interface ProductNutrition {
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+}
+
+export interface Product extends ProductNutrition {
+  id: string;
+  name: string;
+  barcode: string | null;
+  source: 'openfoodfacts' | 'manual' | 'ai';
+  baseProductId: string | null;
+  isPersonal: boolean;
+}
+
+export interface VoiceFoodAnalysis extends ProductNutrition {
+  name: string;
+  portionGrams: number;
+}
